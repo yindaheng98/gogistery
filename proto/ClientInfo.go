@@ -1,8 +1,8 @@
-package InfoStructs
+package proto
 
 import "encoding/json"
 
-//存储于服务器端的用户信息。客户端发来的心跳数据也要是这个格式
+//存储于服务器端的客户端信息。客户端发来的心跳数据也要是这个格式
 type ClientInfo struct {
 	ServiceType string `json:"service_type"` //客户端的服务类型，和Server类的服务类型含义相同
 	Status      int8   `json:"status"`       //从注册中心一侧看到的客户端状态，有正常和停机
