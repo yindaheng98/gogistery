@@ -5,20 +5,20 @@ package proto
 //比如：某个客户端或服务器成功连接到了另一个服务器，收到了另一个服务器传回的服务器信息，用户想定义一个处理此信息的操作
 //
 //又比如：某个客户端或服务器发现自己连接的服务器下线了，用户想定义一个处理此情况的操作
-type EmitterServer struct {
+type ServerEmitter struct {
 	handlers []func(ServerInfo)
 }
 
-func (emitter *EmitterServer) AddHandler(handler func(ServerInfo)) {
+func (emitter *ServerEmitter) AddHandler(handler func(ServerInfo)) {
 	emitter.handlers = append(emitter.handlers, handler)
 }
 
-func (emitter *EmitterServer) Emit(info ServerInfo) {
+func (emitter *ServerEmitter) Emit(info ServerInfo) {
 	for _, handler := range emitter.handlers {
 		handler(info)
 	}
 }
 
-func NewEmitterServer() EmitterServer {
-	return EmitterServer{[]func(ServerInfo){}}
+func NewServerEmitter() ServerEmitter {
+	return ServerEmitter{[]func(ServerInfo){}}
 }
