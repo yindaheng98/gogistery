@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type skipList struct {
+type SkipList struct {
 	root      *Node      //根节点指针
 	n         uint64     //节点总数
 	level     uint64     //预估的索引层数
@@ -15,14 +15,23 @@ type skipList struct {
 //构造一个跳表
 //
 //listSize是预计将在的跳表中存入的节点总数，indexLevel是索引的最大层数（总层数=索引层数+1）
-func SkipList(listSize, indexLevel uint64) *skipList {
+func NewSkipListWithLevel(listSize, indexLevel uint64) *SkipList {
 	C := uint64(math.Ceil(math.Pow(float64(listSize), 1.0/float64(indexLevel))))
-	return &skipList{nil, 0, indexLevel + 1,
+	return &SkipList{nil, 0, indexLevel + 1,
+		NewRandomLevel(C, indexLevel, time.Now().UnixNano())}
+}
+
+//构造一个跳表
+//
+//listSize是预计将在的跳表中存入的节点总数，C是索引的衰减系数（下一层索引数=上一层索引数/C）
+func NewSkipListWithC(listSize, C uint64) *SkipList {
+	indexLevel := uint64(math.Ceil(math.Log(float64(listSize)) / math.Log(float64(C))))
+	return &SkipList{nil, 0, indexLevel + 1,
 		NewRandomLevel(C, indexLevel, time.Now().UnixNano())}
 }
 
 //找到各层index中大小小于data的最大节点的指针
-func (sl *skipList) Find(data float64) *Node {
+func (sl *SkipList) Find(data float64) *Node {
 	result := sl.find(data)
 	if result == nil || len(result) < 1 {
 		return nil
@@ -31,7 +40,7 @@ func (sl *skipList) Find(data float64) *Node {
 }
 
 //找到各层index中大小小于data的最大节点的指针
-func (sl *skipList) find(data float64) []*Node {
+func (sl *SkipList) find(data float64) []*Node {
 	if sl.root == nil { //如果链表为空
 		return nil //则直接返回空
 	}
@@ -59,7 +68,7 @@ func (sl *skipList) find(data float64) []*Node {
 }
 
 //插入一个数据
-func (sl *skipList) Insert(data float64) *Node {
+func (sl *SkipList) Insert(data float64) *Node {
 	sl.n++
 	pres := sl.find(data)      //查找插入点
 	presN := uint64(len(pres)) //插入节点的数量
@@ -93,7 +102,8 @@ func (sl *skipList) Insert(data float64) *Node {
 	return result
 }
 
-func (sl *skipList) Traversal() []*Node {
+//升序遍历
+func (sl *SkipList) Traversal() []*Node {
 	result := make([]*Node, sl.n)
 	node := sl.root
 	for i := uint64(0); i < sl.n && node != nil; i++ {
@@ -103,7 +113,7 @@ func (sl *skipList) Traversal() []*Node {
 	return result
 }
 
-func (sl *skipList) Delete(node *Node) {
+func (sl *SkipList) Delete(node *Node) {
 	prev := node.prev
 	next := node.next
 	length := len(prev)
