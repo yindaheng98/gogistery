@@ -5,19 +5,19 @@ import "gogistery/util/SkipList"
 //一个用跳表和hashmap实现的有序集合
 type SortedSet struct {
 	skiplist     *SkipList.SkipList
-	whosStringIs map[string]*SkipList.Node   //序列化Element->*node的map
-	whosNodeIs   map[*SkipList.Node]*Element //*node->*Element的map
+	whosStringIs map[string]*SkipList.Node  //序列化Element->*node的map
+	whosNodeIs   map[*SkipList.Node]Element //*node->*Element的map
 }
 
 func NewSortedSet(size uint64) *SortedSet {
 	return &SortedSet{SkipList.NewSkipListWithC(size, 2),
 		make(map[string]*SkipList.Node),
-		make(map[*SkipList.Node]*Element)}
+		make(map[*SkipList.Node]Element)}
 }
 
 //向集合中更新一个元素
-func (set *SortedSet) Update(obj *Element, weight float64) {
-	str := (*obj).Stringify()
+func (set *SortedSet) Update(obj Element, weight float64) {
+	str := obj.Stringify()
 	set.remove(str)
 	nodep := set.skiplist.Insert(weight)
 	set.whosStringIs[str] = nodep
@@ -25,8 +25,8 @@ func (set *SortedSet) Update(obj *Element, weight float64) {
 }
 
 //从集合中删除一个元素
-func (set *SortedSet) Remove(obj *Element) {
-	set.remove((*obj).Stringify())
+func (set *SortedSet) Remove(obj Element) {
+	set.remove(obj.Stringify())
 }
 
 func (set *SortedSet) remove(str string) {
@@ -45,10 +45,10 @@ func (set *SortedSet) GetWeight(obj Element) (float64, bool) {
 	return 0, false
 }
 
-func (set *SortedSet) Sorted() []*Element {
+func (set *SortedSet) Sorted() []Element {
 	nodeps := set.skiplist.Traversal()
 	length := len(nodeps)
-	result := make([]*Element, length)
+	result := make([]Element, length)
 	for i := 0; i < length; i++ {
 		result[i] = set.whosNodeIs[nodeps[i]]
 	}

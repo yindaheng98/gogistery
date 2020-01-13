@@ -1,0 +1,28 @@
+package SortedSet
+
+import (
+	"fmt"
+	"math/rand"
+	"testing"
+)
+
+type testObj struct {
+	data float64
+}
+
+func (o testObj) Stringify() string {
+	return fmt.Sprintf("I'm %.3f", o.data)
+}
+
+func TestSortedSet(t *testing.T) {
+	zset := NewSortedSet(30)
+	for i := 0; i < 20; i++ {
+		e := new(testObj)
+		e.data = rand.Float64()
+		zset.Update(e, e.data)
+	}
+	var sorted = zset.Sorted()
+	for _, e := range sorted {
+		fmt.Println(e.Stringify())
+	}
+}
