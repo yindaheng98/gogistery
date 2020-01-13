@@ -80,17 +80,20 @@ func (sl *SkipList) Insert(data float64) *Node {
 
 	//链表不为空才能开始正常赋值
 	level := sl.randLevel.Rand() + 1
-	insert := NewNode(data, level)
-	result := insert
+	result := NewNode(data, level) //要返回的值（永远返回新指针）
+	insert := result               //要执行插入操作的值
 
 	//返回的第一个指针就为空
 	if pres[0] == nil { //说明要在根节点前插
-		insert = NewNode(sl.root.Data, level) //“偷梁换柱”：把根节点值提出来作为要插入的值
-		sl.root.Data = data                   //然后将原本要插入的值放进根节点
-		for i := uint64(0); i < presN; i++ {  //然后更新前置节点表
+		insert.prev = sl.root.prev
+		insert.next = sl.root.next //首先复制根节点的前后指针
+		sl.root.prev = make([]*Node, level)
+		sl.root.next = make([]*Node, level)  //然后新建根节点的前后指针
+		insert = sl.root                     //“偷梁换柱”：把根节点值提出来作为要插入的值
+		sl.root = result                     //然后将根节点值替换为新值
+		for i := uint64(0); i < presN; i++ { //然后更新前置节点表
 			pres[i] = sl.root
 		}
-		result = sl.root //然后把根节点作为返回值
 	}
 
 	//最后执行插入操作
