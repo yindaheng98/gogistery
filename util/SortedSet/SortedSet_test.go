@@ -15,7 +15,7 @@ func (o testObj) Stringify() string {
 }
 
 func TestSortedSet(t *testing.T) {
-	zset := NewSortedSet(30)
+	zset := New(30)
 	for i := 0; i < 20; i++ {
 		e := new(testObj)
 		e.data = rand.Float64()

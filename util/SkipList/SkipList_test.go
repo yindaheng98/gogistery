@@ -6,7 +6,7 @@ import (
 )
 
 func TestSkipList(t *testing.T) {
-	skiplist := NewSkipListWithLevel(30, 5)
+	skiplist := NewWithLevel(30, 5)
 	t.Log(skiplist.Find(100))
 	for i := 0; i < 20; i++ {
 		t.Log(skiplist.Insert(rand.Float64() * 100))

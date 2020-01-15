@@ -15,7 +15,7 @@ type SkipList struct {
 //构造一个跳表
 //
 //listSize是预计将在的跳表中存入的节点总数，indexLevel是索引的最大层数（总层数=索引层数+1）
-func NewSkipListWithLevel(listSize, indexLevel uint64) *SkipList {
+func NewWithLevel(listSize, indexLevel uint64) *SkipList {
 	C := uint64(math.Ceil(math.Pow(float64(listSize), 1.0/float64(indexLevel))))
 	return &SkipList{nil, 0, indexLevel + 1,
 		NewRandomLevel(C, indexLevel, time.Now().UnixNano())}
@@ -24,7 +24,7 @@ func NewSkipListWithLevel(listSize, indexLevel uint64) *SkipList {
 //构造一个跳表
 //
 //listSize是预计将在的跳表中存入的节点总数，C是索引的衰减系数（下一层索引数=上一层索引数/C）
-func NewSkipListWithC(listSize, C uint64) *SkipList {
+func NewWithC(listSize, C uint64) *SkipList {
 	indexLevel := uint64(math.Ceil(math.Log(float64(listSize)) / math.Log(float64(C))))
 	return &SkipList{nil, 0, indexLevel + 1,
 		NewRandomLevel(C, indexLevel, time.Now().UnixNano())}

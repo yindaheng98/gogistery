@@ -9,8 +9,8 @@ type SortedSet struct {
 	whosNodeIs   map[*SkipList.Node]Element //*node->*Element的map
 }
 
-func NewSortedSet(size uint64) *SortedSet {
-	return &SortedSet{SkipList.NewSkipListWithC(size, 2),
+func New(size uint64) *SortedSet {
+	return &SortedSet{SkipList.NewWithC(size, 2),
 		make(map[string]*SkipList.Node),
 		make(map[*SkipList.Node]Element)}
 }
