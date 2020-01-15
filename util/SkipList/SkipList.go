@@ -106,10 +106,13 @@ func (sl *SkipList) Insert(data float64) *Node {
 }
 
 //升序遍历
-func (sl *SkipList) Traversal() []*Node {
-	result := make([]*Node, sl.n)
+func (sl *SkipList) Traversal(n uint64) []*Node {
+	if sl.n < n {
+		n = sl.n
+	}
+	result := make([]*Node, n)
 	node := sl.root
-	for i := uint64(0); i < sl.n && node != nil; i++ {
+	for i := uint64(0); i < n && node != nil; i++ {
 		result[i] = node
 		node = node.next[0]
 	}

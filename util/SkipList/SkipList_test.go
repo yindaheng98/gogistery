@@ -11,7 +11,7 @@ func TestSkipList(t *testing.T) {
 	for i := 0; i < 20; i++ {
 		t.Log(skiplist.Insert(rand.Float64() * 100))
 	}
-	sorted := skiplist.Traversal()
+	sorted := skiplist.Traversal(16)
 	t.Log(sorted)
 	for _, node := range sorted {
 		t.Log(node)

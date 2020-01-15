@@ -45,8 +45,8 @@ func (set *SortedSet) GetWeight(obj Element) (float64, bool) {
 	return 0, false
 }
 
-func (set *SortedSet) Sorted() []Element {
-	nodeps := set.skiplist.Traversal()
+func (set *SortedSet) Sorted(n uint64) []Element {
+	nodeps := set.skiplist.Traversal(n)
 	length := len(nodeps)
 	result := make([]Element, length)
 	for i := 0; i < length; i++ {

@@ -21,7 +21,7 @@ func TestSortedSet(t *testing.T) {
 		e.data = rand.Float64()
 		zset.Update(e, e.data)
 	}
-	var sorted = zset.Sorted()
+	var sorted = zset.Sorted(16)
 	for _, e := range sorted {
 		fmt.Println(e.Stringify())
 	}
