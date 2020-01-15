@@ -119,6 +119,10 @@ func (sl *SkipList) Traversal(n uint64) []*Node {
 	return result
 }
 
+func (sl *SkipList) TraversalAll() []*Node {
+	return sl.Traversal(sl.n)
+}
+
 func (sl *SkipList) Delete(node *Node) {
 	prev := node.prev
 	next := node.next

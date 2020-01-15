@@ -25,4 +25,8 @@ func TestSortedSet(t *testing.T) {
 	for _, e := range sorted {
 		fmt.Println(e.Stringify())
 	}
+	sorted = zset.SortedAll()
+	for _, e := range sorted {
+		fmt.Println(e.Stringify())
+	}
 }
