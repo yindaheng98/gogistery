@@ -1,11 +1,14 @@
 package Emitter
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+	"sync/atomic"
+)
 
 //线程安全的触发器类，多线程输入事件->单线程处理事件
 type Emitter struct {
-	status     bool           //触发器状态（是否启动）
-	statusMu   *sync.RWMutex  //触发器状态读写锁
+	started    uint32         //触发器状态（是否启动）
 	handlers   []func([]byte) //事件处理器列表
 	handlersMu *sync.RWMutex  //事件处理器列表读写锁
 	events     chan []byte    //事件队列
@@ -13,8 +16,7 @@ type Emitter struct {
 
 //新建触发器
 func New() *Emitter {
-	return &Emitter{false,
-		new(sync.RWMutex),
+	return &Emitter{0,
 		[]func([]byte){},
 		new(sync.RWMutex),
 		make(chan []byte)}
@@ -31,9 +33,7 @@ func (e *Emitter) AddHandler(handler func([]byte)) {
 func (e *Emitter) Emit(info []byte) {
 	defer func() {
 		if recover() != nil {
-			e.statusMu.Lock()
-			e.status = false
-			e.statusMu.Unlock()
+			atomic.StoreUint32(&e.started, 0)
 		}
 	}()
 	e.events <- info
@@ -41,33 +41,27 @@ func (e *Emitter) Emit(info []byte) {
 
 //启动事件循环
 func (e *Emitter) Start() {
-	e.statusMu.Lock()
-	defer e.statusMu.Unlock()
-	if !e.status { //处于停止状态才启动
-		e.status = true
+	if atomic.CompareAndSwapUint32(&e.started, 0, 1) { //处于停止状态才启动
 		go e.routine() //启动事件处理循环
 	}
 }
 
 //停止事件循环
 func (e *Emitter) Stop() {
-	e.statusMu.Lock()
-	defer e.statusMu.Unlock()
-	e.status = false
-	close(e.events)
-	e.events = make(chan []byte)
+	if atomic.CompareAndSwapUint32(&e.started, 1, 0) { //处于启动状态才进行停止操作
+		close(e.events)
+		e.events = make(chan []byte)
+		fmt.Println("停止")
+	}
 }
 
 //goroutine循环调用事件处理函数
 func (e *Emitter) routine() {
 	for {
-		e.statusMu.RLock()
-		if !e.status { //如果要停止循环
-			e.statusMu.RUnlock()
+		if atomic.CompareAndSwapUint32(&e.started, 0, 0) { //如果要停止循环
 			break //那就停止循环
 		}
 		e.eventLoop() //事件处理循环
-		e.statusMu.RUnlock()
 	}
 }
 
