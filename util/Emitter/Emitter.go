@@ -7,29 +7,29 @@ import (
 
 //线程安全的触发器类，多线程输入事件->单线程处理事件
 type Emitter struct {
-	started    uint32         //触发器状态（是否启动）
-	handlers   []func([]byte) //事件处理器列表
-	handlersMu *sync.RWMutex  //事件处理器列表读写锁
-	events     chan []byte    //事件队列
+	started    uint32              //触发器状态（是否启动）
+	handlers   []func(interface{}) //事件处理器列表
+	handlersMu *sync.RWMutex       //事件处理器列表读写锁
+	events     chan interface{}    //事件队列
 }
 
 //新建触发器
 func New() *Emitter {
 	return &Emitter{0,
-		[]func([]byte){},
+		[]func(interface{}){},
 		new(sync.RWMutex),
-		make(chan []byte)}
+		make(chan interface{})}
 }
 
 //添加一个事件处理函数
-func (e *Emitter) AddHandler(handler func([]byte)) {
+func (e *Emitter) AddHandler(handler func(interface{})) {
 	e.handlersMu.Lock()
 	defer e.handlersMu.Unlock()
 	e.handlers = append(e.handlers, handler)
 }
 
 //触发事件
-func (e *Emitter) Emit(info []byte) {
+func (e *Emitter) Emit(info interface{}) {
 	defer func() {
 		if recover() != nil {
 			e.Stop()
@@ -49,7 +49,7 @@ func (e *Emitter) Start() {
 func (e *Emitter) Stop() {
 	if atomic.CompareAndSwapUint32(&e.started, 1, 0) { //处于启动状态才进行停止操作
 		close(e.events)
-		e.events = make(chan []byte)
+		e.events = make(chan interface{})
 	}
 }
 
