@@ -17,7 +17,7 @@ func New(size uint64) *SortedSet {
 
 //向集合中更新一个元素
 func (set *SortedSet) Update(obj Element, weight float64) {
-	str := obj.Stringify()
+	str := obj.GetName()
 	set.remove(str)
 	nodep := set.skiplist.Insert(weight)
 	set.whosStringIs[str] = nodep
@@ -26,7 +26,7 @@ func (set *SortedSet) Update(obj Element, weight float64) {
 
 //从集合中删除一个元素
 func (set *SortedSet) Remove(obj Element) {
-	set.remove(obj.Stringify())
+	set.remove(obj.GetName())
 }
 
 func (set *SortedSet) remove(str string) {
@@ -38,7 +38,7 @@ func (set *SortedSet) remove(str string) {
 }
 
 func (set *SortedSet) GetWeight(obj Element) (float64, bool) {
-	nodep, ok := set.whosStringIs[obj.Stringify()]
+	nodep, ok := set.whosStringIs[obj.GetName()]
 	if ok {
 		return nodep.Data, true
 	}
