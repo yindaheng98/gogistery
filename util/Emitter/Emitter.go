@@ -1,7 +1,6 @@
 package Emitter
 
 import (
-	"fmt"
 	"sync"
 	"sync/atomic"
 )
@@ -33,7 +32,7 @@ func (e *Emitter) AddHandler(handler func([]byte)) {
 func (e *Emitter) Emit(info []byte) {
 	defer func() {
 		if recover() != nil {
-			atomic.StoreUint32(&e.started, 0)
+			e.Stop()
 		}
 	}()
 	e.events <- info
@@ -51,7 +50,6 @@ func (e *Emitter) Stop() {
 	if atomic.CompareAndSwapUint32(&e.started, 1, 0) { //处于启动状态才进行停止操作
 		close(e.events)
 		e.events = make(chan []byte)
-		fmt.Println("停止")
 	}
 }
 
