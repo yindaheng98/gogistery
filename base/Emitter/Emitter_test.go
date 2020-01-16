@@ -34,9 +34,9 @@ type TestInfo struct {
 	timeout time.Duration
 }
 
-func (e *TestInfo) Send(addr string, timeout time.Duration) (base.ReceiverInfo, error) {
-	fmt.Printf("I'm sending messages to %s with duration %s", addr, timeout)
-	return &TestInfo{e.addr, timeout}, nil
+func (e *TestInfo) Send(addr string) (base.ReceiverInfo, error) {
+	fmt.Printf("I'm sending messages to %s", addr)
+	return &TestInfo{e.addr, 100}, nil
 }
 
 func (e *TestInfo) GetAddr() string {
@@ -51,7 +51,7 @@ func TestSenderInfoEmitter(t *testing.T) {
 	emitter := NewSenderInfoEmitter()
 	emitter.AddHandler(func(senderInfo base.SenderInfo) {
 		t.Log("Handler1->Here is a SenderInfo handler, a SenderInfo has just arrived, ")
-		receiverInfo, err := senderInfo.Send("addr_in_handler_1", 100)
+		receiverInfo, err := senderInfo.Send("addr_in_handler_1")
 		t.Log(fmt.Sprintf("Handler1->SenderInfo have just been sended to addr_in_handler_1"))
 		if err != nil {
 			t.Log("Handler1->An error occurred: " + err.Error())
@@ -64,7 +64,7 @@ func TestSenderInfoEmitter(t *testing.T) {
 	go emitter.Emit(&TestInfo{"addr_in_event_1", 1})
 	emitter.AddHandler(func(senderInfo base.SenderInfo) {
 		t.Log("Handler2->Here is a SenderInfo handler, a SenderInfo has just arrived, ")
-		receiverInfo, err := senderInfo.Send("addr_in_handler_1", 100)
+		receiverInfo, err := senderInfo.Send("addr_in_handler_1")
 		t.Log(fmt.Sprintf("Handler2->SenderInfo have just been sended to addr_in_handler_2"))
 		if err != nil {
 			t.Log("Handler2->An error occurred: " + err.Error())
