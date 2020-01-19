@@ -7,7 +7,7 @@ import (
 
 //线程安全的触发器类，多线程输入事件->单线程处理事件
 type Emitter struct {
-	started    uint32              //触发器状态（是否启动）
+	enabled    uint32              //触发器状态（是否启动）
 	handlers   []func(interface{}) //事件处理器列表
 	handlersMu *sync.RWMutex       //事件处理器列表读写锁
 	events     chan interface{}    //事件队列
@@ -32,22 +32,24 @@ func (e *Emitter) AddHandler(handler func(interface{})) {
 func (e *Emitter) Emit(info interface{}) {
 	defer func() {
 		if recover() != nil {
-			e.Stop()
+			e.Disable()
 		}
 	}()
-	e.events <- info
+	if atomic.LoadUint32(&e.enabled) != 0 { //只有不在disabled状态才入队列
+		e.events <- info
+	}
 }
 
 //启动事件循环
-func (e *Emitter) Start() {
-	if atomic.CompareAndSwapUint32(&e.started, 0, 1) { //处于停止状态才启动
+func (e *Emitter) Enable() {
+	if atomic.CompareAndSwapUint32(&e.enabled, 0, 1) { //处于disabled状态才启动
 		go e.routine() //启动事件处理循环
 	}
 }
 
 //停止事件循环
-func (e *Emitter) Stop() {
-	if atomic.CompareAndSwapUint32(&e.started, 1, 0) { //处于启动状态才进行停止操作
+func (e *Emitter) Disable() {
+	if atomic.CompareAndSwapUint32(&e.enabled, 1, 0) { //处于enabled状态才进行停止操作
 		close(e.events)
 		e.events = make(chan interface{})
 	}
@@ -56,8 +58,8 @@ func (e *Emitter) Stop() {
 //goroutine循环调用事件处理函数
 func (e *Emitter) routine() {
 	for {
-		if atomic.CompareAndSwapUint32(&e.started, 0, 0) { //如果要停止循环
-			break //那就停止循环
+		if atomic.CompareAndSwapUint32(&e.enabled, 0, 0) { //如果要停止
+			break //那就停止
 		}
 		e.eventLoop() //事件处理循环
 	}
