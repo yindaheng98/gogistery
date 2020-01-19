@@ -8,8 +8,8 @@ type LinkError struct {
 	link base.LinkInfo
 }
 
-func NewLinkError(err error, pairInfo base.LinkInfo) LinkError {
-	return LinkError{error: err, link: pairInfo}
+func NewLinkError(err error, linkInfo base.LinkInfo) LinkError {
+	return LinkError{error: err, link: linkInfo}
 }
 
 func (e *LinkError) Pair() base.LinkInfo {
