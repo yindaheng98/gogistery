@@ -12,6 +12,7 @@ import (
 //服务端发回备用服务器的操作在更高一层实现
 type Sender struct {
 	info     base.SenderInfo   //存储自身信息
+	proto    Protocol          //存储使用的协议
 	receiver base.ReceiverInfo //存储连接的服务器的信息
 	addr     string            //要向何处发送
 	timeout  time.Duration     //超时时间
@@ -23,8 +24,8 @@ type Sender struct {
 }
 
 //新建一个发送端
-func New(info base.SenderInfo, initAddr string, initTimeout time.Duration, initRetryN uint32) *Sender {
-	return &Sender{info, nil,
+func New(info base.SenderInfo, proto Protocol, initAddr string, initTimeout time.Duration, initRetryN uint32) *Sender {
+	return &Sender{info, proto, nil,
 		initAddr, initTimeout, initRetryN, 0,
 		STATUS_Disconnected,
 		newEvents()}
@@ -43,8 +44,8 @@ func (s *Sender) routine() {
 	s.receiver = nil      //清除之前的连接
 	retryN := uint32(0)
 	for atomic.LoadUint32(&s.started) != 0 { //不处于停止状态才继续循环
-		receiverInfo, err := s.info.Send(s.addr, s.timeout) //执行发送操作
-		if err != nil {                                     //如果出错
+		receiverInfo, err := s.proto.Send(s.info, s.addr, s.timeout) //执行发送操作
+		if err != nil {                                              //如果出错
 			atomic.StoreUint32((*uint32)(&s.status), uint32(STATUS_Retrying)) //先进入尝试连接状态
 			retryN++                                                          //尝试次数+1
 			if retryN <= s.retryN {                                           //如果尝试次数没有超过限制

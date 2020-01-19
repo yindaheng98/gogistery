@@ -43,25 +43,33 @@ func (info *TestReceiverInfo) GetRetryN() uint32 {
 }
 
 type TestSenderInfo struct {
+	id string
+}
+
+func (info *TestSenderInfo) GetID() string {
+	return info.id
+}
+
+type TestProtocol struct {
 	src      *rand.Source
 	failRate int32
 }
 
-func (info *TestSenderInfo) Send(addr string, timeout time.Duration) (base.ReceiverInfo, error) {
-	fmt.Printf("TestSenderInfo is sending to %s with timeout %s.", addr, timeout)
-	r := rand.New(*info.src).Int31n(100)
-	if r < info.failRate {
+func (proto *TestProtocol) Send(senderInfo base.SenderInfo, addr string, timeout time.Duration) (base.ReceiverInfo, error) {
+	fmt.Printf("TestSenderInfo{id:%s} is sending to %s with timeout %s.", senderInfo.GetID(), addr, timeout)
+	r := rand.New(*proto.src).Int31n(100)
+	if r < proto.failRate {
 		fmt.Printf("This Send will failed.\n")
 		return nil, errors.New(fmt.Sprintf(
-			"Your fail rate is %d%%, and this random output is %d, so failed.", info.failRate, r))
+			"Your fail rate is %d%%, and this random output is %d, so failed.", proto.failRate, r))
 	}
 	fmt.Printf("This Send will success.\n")
 	return NewTestReceiverInfo(), nil
 }
 
 func TestSender(t *testing.T) {
-	testSenderInfo := TestSenderInfo{&src, 30}
-	sender := New(&testSenderInfo, "initAddr:0", 0, 10)
+	testSenderInfo := TestSenderInfo{"I'm a sender info"}
+	sender := New(&testSenderInfo, &TestProtocol{&src, 30}, "initAddr:0", 0, 10)
 	sender.Events.Start.AddHandler(func() {
 		t.Log("A start event occurred.")
 	})
