@@ -12,6 +12,6 @@ func NewLinkError(err error, linkInfo base.LinkInfo) LinkError {
 	return LinkError{error: err, link: linkInfo}
 }
 
-func (e *LinkError) Pair() base.LinkInfo {
+func (e *LinkError) LinkInfo() base.LinkInfo {
 	return e.link
 }
