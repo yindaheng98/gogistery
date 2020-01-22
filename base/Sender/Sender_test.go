@@ -69,7 +69,7 @@ func (proto *TestProtocol) Send(senderInfo base.SenderInfo, addr string, timeout
 
 func TestSender(t *testing.T) {
 	testSenderInfo := TestSenderInfo{"I'm a sender info"}
-	sender := New(&testSenderInfo, &TestProtocol{&src, 30}, "initAddr:0", 0, 10)
+	sender := New(&testSenderInfo, &TestProtocol{&src, 10}, "initAddr:0", 0, 10)
 	sender.Events.Start.AddHandler(func() {
 		t.Log("A start event occurred.")
 	})
@@ -110,4 +110,5 @@ func TestSender(t *testing.T) {
 	sender.Disconnect()
 	go sender.Events.DisableAll()
 	time.Sleep(1e9 * 1)
+	sender.Disconnect()
 }
