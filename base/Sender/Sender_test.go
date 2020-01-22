@@ -43,11 +43,16 @@ func (info *TestReceiverInfo) GetRetryN() uint32 {
 }
 
 type TestSenderInfo struct {
-	id string
+	id         string
+	disconnect bool
 }
 
 func (info *TestSenderInfo) GetID() string {
 	return info.id
+}
+
+func (info *TestSenderInfo) IsDisconnect() bool {
+	return info.disconnect
 }
 
 type TestProtocol struct {
@@ -68,7 +73,7 @@ func (proto *TestProtocol) Send(senderInfo base.SenderInfo, addr string, timeout
 }
 
 func TestSender(t *testing.T) {
-	testSenderInfo := TestSenderInfo{"I'm a sender info"}
+	testSenderInfo := TestSenderInfo{"I'm a sender info", false}
 	sender := New(&testSenderInfo, &TestProtocol{&src, 10}, "initAddr:0", 0, 10)
 	sender.Events.Start.AddHandler(func() {
 		t.Log("A start event occurred.")
