@@ -28,3 +28,7 @@ func (s *SingleThread) Run(routine func()) {
 	}()
 	routine() //然后启动协程
 }
+
+func (s *SingleThread) IsRunning() bool {
+	return s.started
+}

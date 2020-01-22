@@ -15,10 +15,22 @@ func TestSingleThread(t *testing.T) {
 		t.Log(fmt.Sprintf("I'm No.%d", i))
 		atomic.AddInt32(&i, -1)
 	}
+	rr := func() {
+		if st.IsRunning() {
+			t.Log("I'm running")
+		} else {
+			t.Log("I'm not running")
+		}
+	}
 	go st.Run(r)
+	go rr()
 	go st.Run(r)
+	go rr()
 	go st.Run(r)
+	go rr()
 	go st.Run(r)
+	go rr()
 	go st.Run(r)
+	go rr()
 	time.Sleep(1e9)
 }
