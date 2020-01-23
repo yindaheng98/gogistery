@@ -7,18 +7,18 @@ import (
 
 //线程安全的触发器类，多线程输入事件->单线程处理事件
 type Emitter struct {
-	runner     *Single.Processor   //控制事件处理线程
-	handlers   []func(interface{}) //事件处理器列表
-	handlersMu *sync.RWMutex       //事件处理器列表读写锁
-	events     chan interface{}    //事件队列
-	eventsMu   *sync.RWMutex       //事件队列的新建删除和使用操作锁
+	runner     *Single.Processor    //控制事件处理线程
+	handlers   *[]func(interface{}) //事件处理器列表
+	handlersMu *sync.RWMutex        //事件处理器列表读写锁
+	events     chan interface{}     //事件队列
+	eventsMu   *sync.RWMutex        //事件队列的新建删除和使用操作锁
 }
 
 //新建触发器
 func New() *Emitter {
-
+	handlers := new([]func(interface{}))
 	r := &Emitter{nil,
-		[]func(interface{}){},
+		handlers,
 		new(sync.RWMutex),
 		make(chan interface{}),
 		new(sync.RWMutex)}
@@ -30,7 +30,7 @@ func New() *Emitter {
 func (e *Emitter) AddHandler(handler func(interface{})) {
 	e.handlersMu.Lock()
 	defer e.handlersMu.Unlock()
-	e.handlers = append(e.handlers, handler)
+	*e.handlers = append(*e.handlers, handler)
 }
 
 //触发事件
@@ -69,7 +69,7 @@ func (e *Emitter) eventLoop() {
 	}
 	e.handlersMu.RLock()
 	defer e.handlersMu.RUnlock()
-	for _, handler := range e.handlers {
+	for _, handler := range *e.handlers {
 		handler(info)
 	}
 }
