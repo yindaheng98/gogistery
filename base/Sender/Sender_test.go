@@ -109,11 +109,11 @@ func TestSender(t *testing.T) {
 	go sender.Events.EnableAll()
 	go sender.Connect()
 	time.Sleep(1e9 * 3)
-	go sender.Events.DisableAll()
+	//go sender.Events.DisableAll()
 	time.Sleep(1e6)
 	go sender.Events.EnableAll()
 	sender.Disconnect()
-	go sender.Events.DisableAll()
+	//go sender.Events.DisableAll()
 	time.Sleep(1e9 * 1)
 	sender.Disconnect()
 }
