@@ -6,11 +6,11 @@ import (
 )
 
 type LinkErrorEmitter struct {
-	Emitter.Emitter
+	*Emitter.Emitter
 }
 
 func NewLinkErrorEmitter() *LinkErrorEmitter {
-	return &LinkErrorEmitter{*Emitter.New()}
+	return &LinkErrorEmitter{Emitter.New()}
 }
 
 func (e *LinkErrorEmitter) AddHandler(handler func(Errors.LinkError)) {

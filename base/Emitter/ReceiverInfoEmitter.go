@@ -7,11 +7,11 @@ import (
 
 //事件格式为base.ReceiverInfo
 type ReceiverInfoEmitter struct {
-	Emitter.Emitter
+	*Emitter.Emitter
 }
 
 func NewReceiverInfoEmitter() *ReceiverInfoEmitter {
-	return &ReceiverInfoEmitter{*Emitter.New()}
+	return &ReceiverInfoEmitter{Emitter.New()}
 }
 
 func (e *ReceiverInfoEmitter) AddHandler(handler func(info base.ReceiverInfo)) {

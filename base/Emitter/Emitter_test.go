@@ -10,14 +10,18 @@ import (
 )
 
 type TestInfo struct {
+	id      string
 	addr    string
 	timeout time.Duration
 	retryN  uint32
 }
 
-func (e *TestInfo) Send(addr string, timeout time.Duration) (base.ReceiverInfo, error) {
-	fmt.Printf("I'm sending messages to %s", addr)
-	return &TestInfo{e.addr, timeout, 100}, nil
+func (e *TestInfo) IsDisconnect() bool {
+	return false
+}
+
+func (e *TestInfo) GetID() string {
+	return e.id
 }
 
 func (e *TestInfo) GetAddr() string {
@@ -32,12 +36,13 @@ func (e *TestInfo) GetRetryN() uint32 {
 	return e.retryN
 }
 
-func NewTestInfo(addr string, i uint32) *TestInfo {
-	return &TestInfo{addr: addr, timeout: time.Duration(i), retryN: i}
+func NewTestInfo(id, addr string, i uint32) *TestInfo {
+	return &TestInfo{id: id, addr: addr, timeout: time.Duration(i), retryN: i}
 }
 
 func NewTestLinkInfo(i uint32) base.LinkInfo {
-	return base.NewLinkInfo(NewTestInfo("sender"+string(i), i), NewTestInfo("receiver"+string(i), i))
+	si := string(i)
+	return base.NewLinkInfo(NewTestInfo("sender"+si, si+".send", i), NewTestInfo("receiver"+si, si+".recv", i))
 }
 
 func TestLinkErrorEmitter(t *testing.T) {
@@ -51,46 +56,34 @@ func TestLinkErrorEmitter(t *testing.T) {
 		t.Log(fmt.Sprintf("Here is another handler, I'm handling: %s.", e.Error()))
 	})
 	go emitter.Emit(Errors.NewLinkError(errors.New("error2"), NewTestLinkInfo(2)))
-	go emitter.Disable()
+	//go emitter.Disable()
 	go emitter.Enable()
 	go emitter.Emit(Errors.NewLinkError(errors.New("error3"), NewTestLinkInfo(3)))
 	emitter.AddHandler(func(e Errors.LinkError) {
 		t.Log(fmt.Sprintf("Here is handler2, I'm handling: %s.", e.Error()))
 	})
 	go emitter.Emit(Errors.NewLinkError(errors.New("error4"), NewTestLinkInfo(4)))
-	go emitter.Disable()
 	time.Sleep(1e9 * 3)
+	go emitter.Disable()
 }
 
 func TestSenderInfoEmitter(t *testing.T) {
 	emitter := NewSenderInfoEmitter()
 	emitter.AddHandler(func(senderInfo base.SenderInfo) {
-		t.Log("Handler1->Here is a SenderInfo handler, a SenderInfo has just arrived, ")
-		receiverInfo, err := senderInfo.Send("addr_in_handler_1", 1)
-		t.Log(fmt.Sprintf("Handler1->SenderInfo have just been sended to addr_in_handler_1"))
-		if err != nil {
-			t.Log("Handler1->An error occurred: " + err.Error())
-		}
-		t.Log(fmt.Sprintf("Handler1->Receiver replied a addr %s and a timeout %s",
-			receiverInfo.GetAddr(),
-			receiverInfo.GetTimeout()))
+		t.Log(
+			fmt.Sprintf("Handler1->A SenderInfo{id:%s} has just arrived.",
+				senderInfo.GetID()))
 	})
 	emitter.Enable()
-	go emitter.Emit(&TestInfo{"addr_in_event_1", 1, 1})
+	go emitter.Emit(NewTestInfo("event0", "0.event", 1))
 	emitter.AddHandler(func(senderInfo base.SenderInfo) {
-		t.Log("Handler2->Here is a SenderInfo handler, a SenderInfo has just arrived, ")
-		receiverInfo, err := senderInfo.Send("addr_in_handler_2", 2)
-		t.Log(fmt.Sprintf("Handler2->SenderInfo have just been sended to addr_in_handler_2"))
-		if err != nil {
-			t.Log("Handler2->An error occurred: " + err.Error())
-		}
-		t.Log(fmt.Sprintf("Handler2->Receiver replied a addr %s and a timeout %s",
-			receiverInfo.GetAddr(),
-			receiverInfo.GetTimeout()))
+		t.Log(
+			fmt.Sprintf("Handler1->A SenderInfo{id:%s} has just arrived.",
+				senderInfo.GetID()))
 	})
-	go emitter.Emit(&TestInfo{"addr_in_event_2", 2, 2})
+	go emitter.Emit(NewTestInfo("event1", "1.event", 1))
 	go emitter.Enable()
-	go emitter.Emit(&TestInfo{"addr_in_event_3", 3, 3})
+	go emitter.Emit(NewTestInfo("event2", "2.event", 2))
 	go emitter.Disable()
 	time.Sleep(1e9 * 3)
 }
@@ -103,15 +96,15 @@ func TestReceiverInfoEmitter(t *testing.T) {
 			receiverInfo.GetTimeout()))
 	})
 	emitter.Enable()
-	go emitter.Emit(&TestInfo{"addr_in_event_1", 1, 1})
+	go emitter.Emit(NewTestInfo("event0", "0.event", 1))
 	emitter.AddHandler(func(receiverInfo base.ReceiverInfo) {
 		t.Log(fmt.Sprintf("Handler2->a ReceiverInfo has just arrived, it has a addr %s and a timeout %s",
 			receiverInfo.GetAddr(),
 			receiverInfo.GetTimeout()))
 	})
-	go emitter.Emit(&TestInfo{"addr_in_event_2", 2, 2})
+	go emitter.Emit(NewTestInfo("event1", "1.event", 1))
 	go emitter.Enable()
-	go emitter.Emit(&TestInfo{"addr_in_event_3", 3, 3})
+	go emitter.Emit(NewTestInfo("event2", "2.event", 2))
 	go emitter.Disable()
 	time.Sleep(1e9 * 3)
 }

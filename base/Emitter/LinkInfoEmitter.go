@@ -6,11 +6,11 @@ import (
 )
 
 type LinkInfoEmitter struct {
-	Emitter.Emitter
+	*Emitter.Emitter
 }
 
 func NewLinkInfoEmitter() *LinkInfoEmitter {
-	return &LinkInfoEmitter{*Emitter.New()}
+	return &LinkInfoEmitter{Emitter.New()}
 }
 
 func (e *LinkInfoEmitter) AddHandler(handler func(info base.LinkInfo)) {
