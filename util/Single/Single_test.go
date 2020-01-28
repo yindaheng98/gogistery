@@ -16,64 +16,41 @@ func TestSingleThread(t *testing.T) {
 		atomic.AddInt32(&i, -1)
 		time.Sleep(1e8)
 	}
-	rr := func() {
-		if st.IsRunning() {
-			t.Log("I'm running")
-		} else {
-			t.Log("I'm not running")
-		}
+	st.Callback.Started = func() {
+		t.Log("I'm started.")
+	}
+	st.Callback.Stopped = func() {
+		t.Log("I'm stopped.")
 	}
 	go st.Run(r)
-	go rr()
-	go rr()
-	go rr()
 	go st.Run(r)
-	go rr()
-	go rr()
-	go rr()
 	go st.Run(r)
-	go rr()
-	go rr()
-	go rr()
-	time.Sleep(1e9)
-	go rr()
-	go rr()
-	go rr()
 	time.Sleep(1e9)
 }
 
 func TestSingleProcessor(t *testing.T) {
 	i := int32(0)
-	p := NewProcessor(func() {
+	p := NewProcessor()
+	p.Callback.Started = func() {
+		t.Log("I'm started.")
+	}
+	p.Callback.Stopped = func() {
+		t.Log("I'm stopped.")
+	}
+	pp := func() {
 		atomic.AddInt32(&i, 1)
 		t.Log(fmt.Sprintf("I'm No.%d", i))
 		atomic.AddInt32(&i, -1)
-	})
-	pp := func() {
-		if p.IsRunning() {
-			t.Log("I'm running")
-		} else {
-			t.Log("I'm not running")
-		}
 	}
-	go p.Start()
-	go pp()
+	go p.Start(pp)
 	go p.Stop()
-	go pp()
-	go p.Start()
-	go pp()
+	go p.Start(pp)
 	go p.Stop()
-	go pp()
-	go p.Start()
-	go pp()
-	go p.Stop()
-	go pp()
+	go p.Start(pp)
 	go p.Stop()
 	go p.Stop()
 	go p.Stop()
 	go p.Stop()
-	go pp()
-	go pp()
+	go p.Stop()
 	time.Sleep(1e9)
-	go pp()
 }

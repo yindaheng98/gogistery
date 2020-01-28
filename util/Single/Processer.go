@@ -7,21 +7,28 @@ import "sync"
 //可以保证同时只会有一个process函数被调用
 type Processor struct {
 	thread    *Thread
-	process   func()
 	started   bool
 	startedMu *sync.Mutex
+	Callback  *callbacks
 }
 
-func NewProcessor(process func()) *Processor {
-	return &Processor{NewThread(), process, false, new(sync.Mutex)}
+func NewProcessor() *Processor {
+	p := &Processor{NewThread(), false, new(sync.Mutex), newCallbacks()}
+	p.thread.Callback = p.Callback
+	return p
 }
 
-func (p *Processor) Start() {
+func (p *Processor) Start(process func()) {
 	p.startedMu.Lock()
 	defer p.startedMu.Unlock()
+	p.thread.Callback = p.Callback
 	if !p.started {
 		p.started = true
-		go p.thread.Run(p.routine)
+		go p.thread.Run(func() {
+			for p.started {
+				process()
+			}
+		})
 	}
 }
 
@@ -29,14 +36,4 @@ func (p *Processor) Stop() {
 	p.startedMu.Lock()
 	defer p.startedMu.Unlock()
 	p.started = false
-}
-
-func (p *Processor) routine() {
-	for p.started {
-		p.process()
-	}
-}
-
-func (p *Processor) IsRunning() bool {
-	return p.thread.IsRunning()
 }
