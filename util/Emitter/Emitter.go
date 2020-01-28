@@ -12,18 +12,27 @@ type Emitter struct {
 	handlersMu *sync.RWMutex        //事件处理器列表读写锁
 	events     chan interface{}     //事件队列
 	eventsMu   *sync.RWMutex        //事件队列的新建删除和使用操作锁
+	enabled    bool                 //启停标记
+	enabledMu  *sync.RWMutex        //启停标记读写锁
 }
 
 //新建触发器
 func New() *Emitter {
-	handlers := new([]func(interface{}))
-	r := &Emitter{nil,
-		handlers,
-		new(sync.RWMutex),
-		make(chan interface{}),
-		new(sync.RWMutex)}
-	r.runner = Single.NewProcessor(r.eventLoop)
-	return r
+	e := &Emitter{Single.NewProcessor(),
+		new([]func(interface{})), new(sync.RWMutex),
+		make(chan interface{}), new(sync.RWMutex),
+		false, new(sync.RWMutex)}
+	e.runner.Callback.Started = func() {
+		e.enabledMu.Lock()
+		defer e.enabledMu.Unlock()
+		e.enabled = true
+	}
+	e.runner.Callback.Stopped = func() {
+		e.enabledMu.Lock()
+		defer e.enabledMu.Unlock()
+		e.enabled = false
+	}
+	return e
 }
 
 //添加一个事件处理函数
@@ -40,16 +49,18 @@ func (e *Emitter) Emit(info interface{}) {
 			e.Disable()
 		}
 	}()
-	e.eventsMu.RLock()
-	defer e.eventsMu.RUnlock()
-	if e.runner.IsRunning() { //只有不在disabled状态才入队列
+	e.enabledMu.RLock()
+	defer e.enabledMu.RUnlock()
+	if e.enabled { //只有不在disabled状态才入队列
+		e.eventsMu.RLock()
+		defer e.eventsMu.RUnlock()
 		e.events <- info
 	}
 }
 
 //启动事件循环
 func (e *Emitter) Enable() {
-	e.runner.Start()
+	e.runner.Start(e.eventLoop)
 }
 
 //停止事件循环
