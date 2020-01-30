@@ -20,6 +20,6 @@ func (e *ReceiverInfoEmitter) AddHandler(handler func(info base.ReceiverInfo)) {
 	})
 }
 
-func (e *ReceiverInfoEmitter) Emit(err base.ReceiverInfo) {
-	e.Emitter.Emit(err)
+func (e *ReceiverInfoEmitter) Emit(info base.ReceiverInfo) {
+	e.Emitter.Emit(info)
 }
