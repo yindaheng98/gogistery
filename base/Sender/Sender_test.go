@@ -11,9 +11,10 @@ import (
 )
 
 type TestReceiverInfo struct {
-	addr    string
-	timeout time.Duration
-	retryN  uint32
+	addr         string
+	timeout      time.Duration
+	retryN       uint32
+	isDisconnect bool
 }
 
 var src = rand.NewSource(10)
@@ -27,7 +28,7 @@ func NewTestReceiverInfo() *TestReceiverInfo {
 			rand.New(src).Int31n(255),
 			rand.New(src).Int31n(25565)),
 		timeout: time.Duration(rand.New(src).Int63n(100) * 1e6),
-		retryN:  rand.New(src).Uint32() % 10}
+		retryN:  rand.New(src).Uint32()%5 + 5}
 }
 
 func (info *TestReceiverInfo) GetAddr() string {
@@ -40,6 +41,10 @@ func (info *TestReceiverInfo) GetTimeout() time.Duration {
 
 func (info *TestReceiverInfo) GetRetryN() uint32 {
 	return info.retryN
+}
+
+func (info *TestReceiverInfo) IsDisconnect() bool {
+	return info.isDisconnect
 }
 
 type TestSenderInfo struct {
@@ -60,21 +65,32 @@ type TestProtocol struct {
 	failRate int32
 }
 
-func (proto *TestProtocol) Send(senderInfo base.SenderInfo, addr string, timeout time.Duration) (base.ReceiverInfo, error) {
-	fmt.Printf("TestSenderInfo{id:%s} is sending to %s with timeout %s.", senderInfo.GetID(), addr, timeout)
+func (proto *TestProtocol) Send(senderInfo base.SenderInfo, addr string, protoChan chan ProtoChanElement) {
+	s := fmt.Sprintf("\nTestSenderInfo{id:%s} have been sent to %s.", senderInfo.GetID(), addr)
+	defer func() {
+		if recover() != nil {
+			fmt.Print(s + "This Send was timeout.")
+		}
+	}()
 	r := rand.New(*proto.src).Int31n(100)
 	if r < proto.failRate {
-		fmt.Printf("This Send will failed.\n")
-		return nil, errors.New(fmt.Sprintf(
-			"Your fail rate is %d%%, and this random output is %d, so failed.", proto.failRate, r))
+		protoChan <- ProtoChanElement{nil, errors.New(fmt.Sprintf(
+			"Your fail rate is %d%%, and this random output is %d, so failed.", proto.failRate, r))}
+		fmt.Print(s + "This Send was failed.")
+		return
 	}
-	fmt.Printf("This Send will success.\n")
-	return NewTestReceiverInfo(), nil
+	time.Sleep(time.Duration(rand.Int63n(100) * 1e5)) /*********将该值由1e5调节至1e6可模拟超时情况**********/
+	protoChan <- ProtoChanElement{NewTestReceiverInfo(), nil}
+	fmt.Print(s + "This Send was success.")
+}
+
+func (proto *TestProtocol) SendDisconnect(senderInfo base.SenderInfo, addr string) {
+	fmt.Printf("\nTestSenderInfo{id:%s} have been sent to %s for disconnection.", senderInfo.GetID(), addr)
 }
 
 func TestSender(t *testing.T) {
 	testSenderInfo := TestSenderInfo{"I'm a sender info", false}
-	sender := New(&testSenderInfo, &TestProtocol{&src, 10}, "initAddr:0", 0, 10)
+	sender := New(&testSenderInfo, &TestProtocol{&src, 10}, "initAddr:0", 1e8, 10)
 	sender.Events.Start.AddHandler(func() {
 		t.Log("A start event occurred.")
 	})
@@ -88,21 +104,38 @@ func TestSender(t *testing.T) {
 				info.GetTimeout(),
 				info.GetRetryN()))
 	})
-	sender.Events.Disconnect.AddHandler(func(e Errors.LinkError) {
+	sender.Events.Update.AddHandler(func(info base.ReceiverInfo) {
 		t.Log(
-			fmt.Sprintf("A disconnect event occurred, its error message is %s, and its receiver addr is \" %s \"",
+			fmt.Sprintf("A update event occurred: base.ReceiverInfo{addr:%s,timeout:%s,retryN:%d}",
+				info.GetAddr(),
+				info.GetTimeout(),
+				info.GetRetryN()))
+	})
+	sender.Events.Disconnect.AddHandler(func(e Errors.LinkError) {
+		info := e.LinkInfo().ReceiverInfo()
+		addr := "nil"
+		if info != nil {
+			addr = info.GetAddr()
+		}
+		t.Log(
+			fmt.Sprintf("A disconnect event occurred, its error message is %s, and its receiver addr is %s",
 				e.Error(),
-				e.LinkInfo().ReceiverInfo().GetAddr()))
+				addr))
 	})
 	sender.Events.Retry.AddHandler(func(e Errors.LinkError) {
+		info := e.LinkInfo().ReceiverInfo()
+		addr := "nil"
+		if info != nil {
+			addr = info.GetAddr()
+		}
 		t.Log(
-			fmt.Sprintf("A retry event occurred, its error message is %s, and its receiver addr is \" %s \"",
+			fmt.Sprintf("A retry event occurred, its error message is %s, and its receiver addr is %s",
 				e.Error(),
-				e.LinkInfo().ReceiverInfo().GetAddr()))
+				addr))
 	})
 	sender.Events.Error.AddHandler(func(e Errors.LinkError) {
 		t.Log(
-			fmt.Sprintf("A error occurred, its error message is %s, and its receiver addr is \" %s \"",
+			fmt.Sprintf("A error occurred, its error message is %s, and its receiver addr is %s",
 				e.Error(),
 				e.LinkInfo().ReceiverInfo().GetAddr()))
 	})

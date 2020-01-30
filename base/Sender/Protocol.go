@@ -2,10 +2,17 @@ package Sender
 
 import (
 	"gogistery/base"
-	"time"
 )
 
+type ProtoChanElement struct {
+	info  base.ReceiverInfo
+	error error
+}
+
 type Protocol interface {
-	Send(senderInfo base.SenderInfo, addr string, timeout time.Duration) (base.ReceiverInfo, error)
-	//这个里面的timeout项用于指定超时时间，超过此时间即判定为发送失败
+	//将senderInfo发往addr所指的地址，并将返回信息放入protoChan中
+	//
+	//如果超时，protoChan将关闭
+	Send(senderInfo base.SenderInfo, addr string, protoChan chan ProtoChanElement)
+	SendDisconnect(senderInfo base.SenderInfo, addr string)
 }
