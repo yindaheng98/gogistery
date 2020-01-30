@@ -29,6 +29,10 @@ func New(element Element, timeout time.Duration, timeoutHandler func()) *Timeout
 		false, new(sync.Mutex)}
 }
 
+func (v *TimeoutValue) GetElement() Element {
+	return v.element
+}
+
 //启动检查线程
 func (v *TimeoutValue) Start() {
 	v.stopMu.Lock()
