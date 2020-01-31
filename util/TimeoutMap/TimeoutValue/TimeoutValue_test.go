@@ -10,6 +10,10 @@ type TestElement struct {
 	id string
 }
 
+func (e *TestElement) NewAddedHandler() {
+	fmt.Printf("Element %s was added.\n", e.id)
+}
+
 func (e *TestElement) TimeoutHandler() {
 	fmt.Printf("Element %s is timeout.\n", e.id)
 }

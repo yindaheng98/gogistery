@@ -14,6 +14,10 @@ func (e TestElement) GetID() string {
 	return e.id
 }
 
+func (e TestElement) NewAddedHandler() {
+	fmt.Printf("Element %s was new added.\n", e.id)
+}
+
 func (e TestElement) TimeoutHandler() {
 	fmt.Printf("Element %s is timeout.\n", e.id)
 }

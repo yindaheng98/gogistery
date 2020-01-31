@@ -38,6 +38,9 @@ func (v *TimeoutValue) Start() {
 	v.stopMu.Lock()
 	defer v.stopMu.Unlock()
 	v.toStop = false
+	v.runner.Callback.Started = func() {
+		v.element.NewAddedHandler()
+	}
 	v.runner.Start(func() {
 		v.updateMu.Lock()
 		v.isUpdated = false //重置更新标记
