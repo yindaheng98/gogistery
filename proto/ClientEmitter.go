@@ -1,22 +1,32 @@
 package proto
 
+import (
+	"gogistery/util/Emitter"
+	"log"
+)
+
 //此类用于在服务端成功连接到一个客户端时进行的一些操作成功时执行的操作。下面列举几个可以用此类的情况
 //
 //比如：某个服务器成功收到了到一个客户端的连接请求，用户想定义一个处理此信息的操作
 //
 //又比如：某个服务器发现一个客户端下线了，用户想定义一个处理此情况的操作
 type ClientEmitter struct {
-	handlers []func(ClientInfo)
+	emitter *Emitter.Emitter
 }
 
-func (emitter *ClientEmitter) AddHandler(handler func(ClientInfo)) {
-	emitter.handlers = append(emitter.handlers, handler)
+func (e *ClientEmitter) AddHandler(handler func(*ClientInfo)) {
+	e.emitter.AddHandler(func(bytes []byte) {
+		info, err := ParseClient(bytes)
+		if err != nil {
+			handler(info)
+		} else {
+			log.Println("Failed parsing a ClientInfo: " + string(bytes))
+		}
+	})
 }
 
-func (emitter *ClientEmitter) Emit(info ClientInfo) {
-	for _, handler := range emitter.handlers {
-		handler(info)
-	}
+func (e *ClientEmitter) Emit(info ClientInfo) {
+	e.emitter.Emit(info.String())
 }
 
 func NewClientEmitter() ClientEmitter {

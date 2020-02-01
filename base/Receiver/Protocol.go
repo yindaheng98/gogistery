@@ -3,8 +3,7 @@ package Receiver
 import "gogistery/base"
 
 type Protocol interface {
-	//info用于指定返回的数据，返回接收到的数据
-	//
-	//此接口的实现中等待连接到达并接收到完整SenderInfo或出错时才会返回
-	Receive(info base.ReceiverInfo) (base.SenderInfo, error)
+	//用一个chan向处理线程传递接收到的数据，另一个chan用于指定要返回的数据
+	Receive(senderInfoChan chan base.SenderInfo, recvInfoChan chan base.ReceiverInfo)
+	Reject()
 }
