@@ -92,3 +92,9 @@ func (m *TimeoutMap) Delete(id string) {
 		m.mu.RUnlock()
 	}
 }
+
+func (m *TimeoutMap) Count() int {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return len(m.elements)
+}
