@@ -105,7 +105,7 @@ func (s *Sender) routine() {
 				s.Disconnect()
 				break //然后直接退出
 			}
-		} else if receiverInfo.IsDisconnect() {
+		} else if receiverInfo.IsReject() {
 			/********不出错但是返回了断开连接的消息那就断开连接********/
 			s.Disconnect()
 			break

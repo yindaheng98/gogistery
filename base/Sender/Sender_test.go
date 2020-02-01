@@ -43,7 +43,7 @@ func (info *TestReceiverInfo) GetRetryN() uint32 {
 	return info.retryN
 }
 
-func (info *TestReceiverInfo) IsDisconnect() bool {
+func (info *TestReceiverInfo) IsReject() bool {
 	return info.isDisconnect
 }
 
