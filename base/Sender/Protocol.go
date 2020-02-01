@@ -14,5 +14,7 @@ type Protocol interface {
 	//
 	//如果超时，protoChan将关闭
 	Send(senderInfo base.SenderInfo, addr string, protoChan chan ProtoChanElement)
+
+	//发送“停止连接”的消息
 	SendDisconnect(senderInfo base.SenderInfo, addr string)
 }
