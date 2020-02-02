@@ -13,18 +13,18 @@ func NewResponser(proto ResponseProtocol) *Responser {
 	return &Responser{proto}
 }
 
-type ResponserOption interface {
-	GetResponseOption() ResponseOption
-	GetTimeout() time.Duration
+type ResponserOption struct {
+	responseOption ResponseOption
+	timeout        time.Duration
 }
 
 //传入一个响应channel，此channel将在函数返回接收到的Request后等待要响应的Response
 func (r *Responser) Recv(responseChan chan Response, option ResponserOption) (Request, error) {
 	requestProtoChan := make(chan RequestChanElement, 1)
-	responseProtoChan := make(chan Response, 1)                                      //构造Protocol中要用的channel
-	go r.proto.Recv(responseProtoChan, option.GetResponseOption(), requestProtoChan) //调用Protocol的接收协议
-	requestEl, ok := <-requestProtoChan                                              //等待接收数据到达
-	if !ok {                                                                         //如果通道已关闭
+	responseProtoChan := make(chan Response, 1)                                 //构造Protocol中要用的channel
+	go r.proto.Recv(responseProtoChan, option.responseOption, requestProtoChan) //调用Protocol的接收协议
+	requestEl, ok := <-requestProtoChan                                         //等待接收数据到达
+	if !ok {                                                                    //如果通道已关闭
 		return nil, errors.New("request channel closed unexpectedly") //则返回错误
 	}
 	close(requestProtoChan)                                  //接收数据正确到达后关闭Protocol中的接收channel
@@ -50,6 +50,6 @@ func waitResponse(responseChan chan Response, responseProtoChan chan Response, o
 		if ok { //如果正常返回
 			responseProtoChan <- response //则传入到底层协议
 		}
-	case <-time.After(option.GetTimeout()): //或超时
+	case <-time.After(option.timeout): //或超时
 	}
 }
