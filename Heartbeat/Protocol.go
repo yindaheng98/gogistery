@@ -8,40 +8,46 @@ type Request interface {
 type Response interface {
 }
 
-//此类用于在Response通道中传递Response和错误信息
-type ResponseChanElement struct {
+//此类用于存储request端收到的response和错误信息
+type ResponseReceiveType struct {
 	response Response
 	error    error
 }
 
-func (e ResponseChanElement) GetResponse() Response {
-	return e.response
-}
-
-func (e ResponseChanElement) GetError() error {
-	return e.error
-}
-
-//此类用于在Request通道中传递Request和错误信息
-type RequestChanElement struct {
+//此类用于存储response端收到的request和错误信息
+type RequestReceiveType struct {
 	request Request
 	error   error
 }
 
-type RequestOption interface {
+//自定义请求发送设置
+type RequestSendOption interface {
+}
+
+//自定义响应发送设置
+type ResponseSendOption interface {
+}
+
+//发送一个请求所需的信息
+type RequestSendInfo struct {
+	request Request
+	option  RequestSendOption
+}
+
+//发送一个响应所需的信息
+type ResponseSendInfo struct {
+	response Response
+	option   ResponseSendOption
 }
 
 //心跳数据发送协议
 type RequestProtocol interface {
-	//按照option所指设置从只读channel responseChan中取出信息发出，并将发回的信息和错误放入只写channel responseChan
-	Request(request <-chan Request, option RequestOption, responseChan chan<- ResponseChanElement)
-}
-
-type ResponseOption interface {
+	//从只读channel responseChan中取出信息发出，并将发回的信息和错误放入只写channel responseChan
+	Request(requestChan <-chan RequestSendOption, responseChan chan<- ResponseReceiveType)
 }
 
 //心跳数据响应协议
 type ResponseProtocol interface {
 	//接收到信息时将接收到的信息和错误放入只写channel requestChan，并从只读channel responseChan中取出信息发回
-	Response(requestChan chan<- RequestChanElement, option ResponseOption, responseChan <-chan Response)
+	Response(requestChan chan<- RequestReceiveType, responseChan <-chan ResponseSendOption)
 }
