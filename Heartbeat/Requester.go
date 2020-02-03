@@ -6,7 +6,7 @@ import (
 )
 
 type requesterEvents struct {
-	Retry *RequestOptionErrorEmitter
+	Retry *ProtocolRequestSendOptionErrorEmitter
 }
 
 type Requester struct {
@@ -15,7 +15,7 @@ type Requester struct {
 }
 
 func NewRequester(proto RequestProtocol) *Requester {
-	return &Requester{proto, &requesterEvents{NewRequestOptionErrorEmitter()}}
+	return &Requester{proto, &requesterEvents{newProtocolRequestSendOptionErrorEmitter()}}
 }
 
 //多次重试发送并等待回复，直到成功或达到重试次数上限
