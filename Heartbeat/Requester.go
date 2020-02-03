@@ -39,18 +39,15 @@ func (r *Requester) Send(request Request, option RequesterOption) (Response, err
 //发送并等待回复，直到成功或超时
 func (r *Requester) SendOnce(request Request, option RequesterOption) (Response, error) {
 	responseChan := make(chan ResponseChanElement, 1)
-	go func() { //异步执行发送函数
-		response, err := r.proto.Send(request, option.requestOption) //异步执行发送操作
-		responseChan <- ResponseChanElement{response, err}
+	defer func() {
+		defer func() { recover() }()
+		close(responseChan) //退出时关闭通道
 	}()
-	go func() { //异步执行超时检测函数
-		defer func() {
-			_ = recover()
-		}()
-		time.Sleep(option.timeout)                                           //等待一段时间
-		responseChan <- ResponseChanElement{nil, errors.New("send timeout")} //发送超时信息
-	}()
-	res := <-responseChan //接收信息
-	close(responseChan)   //然后关闭通道
-	return res.response, res.error
+	go r.proto.Send(request, option.requestOption, responseChan) //异步执行发送操作
+	select {
+	case responseEl := <-responseChan:
+		return responseEl.response, responseEl.error
+	case <-time.After(option.timeout):
+		return nil, errors.New("send timeout")
+	}
 }

@@ -34,7 +34,7 @@ type RequestOption interface {
 //心跳数据发送协议
 type RequestProtocol interface {
 	//按照option所指设置发送request，并返回发回的信息和错误
-	Send(request Request, option RequestOption) (Response, error)
+	Send(request Request, option RequestOption, responseChan chan ResponseChanElement)
 }
 
 type ResponseOption interface {
