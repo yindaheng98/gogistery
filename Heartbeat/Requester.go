@@ -43,7 +43,13 @@ func (r *Requester) SendOnce(request Request, option RequesterOption) (Response,
 		defer func() { recover() }()
 		close(responseChan) //退出时关闭通道
 	}()
-	go r.proto.Send(request, option.requestOption, responseChan) //异步执行发送操作
+	requestChan := make(chan Request, 1)
+	defer func() {
+		defer func() { recover() }()
+		close(requestChan) //退出时关闭通道
+	}()
+	go r.proto.Request(requestChan, option.requestOption, responseChan) //异步执行发送操作
+	requestChan <- request
 	select {
 	case responseEl := <-responseChan:
 		return responseEl.response, responseEl.error
