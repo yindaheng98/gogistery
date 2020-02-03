@@ -33,8 +33,8 @@ type RequestOption interface {
 
 //心跳数据发送协议
 type RequestProtocol interface {
-	//按照option所指设置发送request，并返回发回的信息和错误
-	Send(request Request, option RequestOption, responseChan chan ResponseChanElement)
+	//按照option所指设置从只读channel responseChan中取出信息发出，并将发回的信息和错误放入只写channel responseChan
+	Request(request <-chan Request, option RequestOption, responseChan chan<- ResponseChanElement)
 }
 
 type ResponseOption interface {
@@ -42,8 +42,6 @@ type ResponseOption interface {
 
 //心跳数据响应协议
 type ResponseProtocol interface {
-	//接收到信息时将接收到的信息和错误入requestChan，并从responseChan中取出信息发回
-	//
-	//每收发一轮就调用一次此函数
-	Recv(responseChan chan Response, option ResponseOption, requestChan chan RequestChanElement)
+	//接收到信息时将接收到的信息和错误放入只写channel requestChan，并从只读channel responseChan中取出信息发回
+	Response(requestChan chan<- RequestChanElement, option ResponseOption, responseChan <-chan Response)
 }
