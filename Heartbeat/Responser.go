@@ -33,5 +33,5 @@ func (r *Responser) Recv() (Request, error, func(ProtocolResponseSendOption)) {
 	if !ok { //如果通道已关闭
 		return nil, errors.New("request channel closed unexpectedly"), responseFunc //则返回错误
 	}
-	return request.request, request.error, responseFunc //返回收到的Request
+	return request.Request, request.Error, responseFunc //返回收到的Request
 }

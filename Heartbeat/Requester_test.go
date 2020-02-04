@@ -31,7 +31,7 @@ type TestRequestProtocol struct {
 func (t *TestRequestProtocol) Request(requestChan <-chan ProtocolRequestSendOption, responseChan chan<- ReceivedResponse) {
 	atomic.AddUint32(&t.responseN, 1)
 	protoRequest := <-requestChan
-	request, option := protoRequest.request, protoRequest.option
+	request, option := protoRequest.Request, protoRequest.Option
 	s := fmt.Sprintf("\nIt was sending attempt %02d in protocol. TestRequest{id:%s} is sending to %s. ",
 		t.responseN, request.(TestRequest).id, option.(TestRequestOption).addr)
 	timeout := time.Duration(rand.Int63n(1e3) * 1e3)
@@ -66,7 +66,7 @@ func testReq(i uint64, logger func(string)) {
 		TestRequestOption{
 			fmt.Sprintf("%02d", i),
 			fmt.Sprintf("%02d.%02d.%02d.%02d", i, i, i, i)}},
-		time.Duration(5e7), /*********将该值调低可模拟超时情况**********/
+		time.Duration(1e6), /*********将该值调低可模拟超时情况**********/
 		10)
 	if err != nil {
 		logger(fmt.Sprintf("No.%02d test failed. err is %s", i, err.Error()))

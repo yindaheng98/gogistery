@@ -37,7 +37,7 @@ func (t TestResponseProtocol) Response(requestChan chan<- ReceivedRequest, respo
 	if !ok {
 		fmt.Print(s + "But the Response was timeouted.")
 	} else {
-		response, option := protoResponse.response, protoResponse.option
+		response, option := protoResponse.Response, protoResponse.Option
 		fmt.Print(s + fmt.Sprintf("And the Response is TestResponse{id:%s}, with the option TestResponseOption{id:%s}",
 			response.(TestResponse).id,
 			option.(TestResponseOption).id))

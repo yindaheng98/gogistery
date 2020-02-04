@@ -46,7 +46,7 @@ func (r *Requester) SendOnce(option ProtocolRequestSendOption, timeout time.Dura
 	requestChan <- option
 	select {
 	case response := <-responseChan:
-		return response.response, response.error
+		return response.Response, response.Error
 	case <-time.After(timeout):
 		return nil, errors.New("send timeout")
 	}

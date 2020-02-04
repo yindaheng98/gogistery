@@ -10,14 +10,14 @@ type Response interface {
 
 //此类用于存储request端收到的response和错误信息
 type ReceivedResponse struct {
-	response Response
-	error    error
+	Response Response
+	Error    error
 }
 
 //此类用于存储response端收到的request和错误信息
 type ReceivedRequest struct {
-	request Request
-	error   error
+	Request Request
+	Error   error
 }
 
 //自定义请求发送设置
@@ -30,14 +30,14 @@ type CustomResponseSendOption interface {
 
 //发送一个请求所需的信息
 type ProtocolRequestSendOption struct {
-	request Request
-	option  CustomRequestSendOption
+	Request Request
+	Option  CustomRequestSendOption
 }
 
 //发送一个响应所需的信息
 type ProtocolResponseSendOption struct {
-	response Response
-	option   CustomResponseSendOption
+	Response Response
+	Option   CustomResponseSendOption
 }
 
 //心跳数据发送协议
