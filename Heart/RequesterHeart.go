@@ -8,7 +8,7 @@ type RequesterHeart struct {
 func (h *RequesterHeart) RunBeating(initRequest RequesterHeartbeat) error {
 	request := initRequest
 	for request != nil {
-		if nextRequest, err := beat(request, h.proto); err != nil {
+		if nextRequest, err := requesterBeat(request, h.proto); err != nil {
 			return err
 		} else {
 			request = nextRequest
@@ -18,8 +18,8 @@ func (h *RequesterHeart) RunBeating(initRequest RequesterHeartbeat) error {
 }
 
 //输入协议进行一次beat，返回下一次beat所需的数据
-func beat(request RequesterHeartbeat, proto RequesterHeartbeatProtocol) (RequesterHeartbeat, error) {
-	response, err := proto.RequestHeartbeat(request)
+func requesterBeat(request RequesterHeartbeat, proto RequesterHeartbeatProtocol) (RequesterHeartbeat, error) {
+	response, err := proto.Request(request)
 	if err != nil {
 		return nil, err
 	}
