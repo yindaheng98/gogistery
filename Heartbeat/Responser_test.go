@@ -46,22 +46,20 @@ func (t TestResponseProtocol) Response(requestChan chan<- ReceivedRequest, respo
 
 func testRes(i uint64, logger func(string)) {
 	responser := NewResponser(TestResponseProtocol{&src, 30, fmt.Sprintf("%d", i)})
-	responseChan := make(chan ProtocolResponseSendOption, 1)
-	request, err := responser.Recv(responseChan)
+	request, err, responseFunc := responser.Recv()
 	d := time.Duration(rand.Int31n(1e3) * 1e3)
 	if err != nil {
 		logger(err.Error())
 		time.Sleep(d)
-		responseChan <- ProtocolResponseSendOption{TestResponse{fmt.Sprintf("error%02d", i)},
-			TestResponseOption{fmt.Sprintf("error%02d", i)}}
+		responseFunc(ProtocolResponseSendOption{TestResponse{fmt.Sprintf("error%02d", i)},
+			TestResponseOption{fmt.Sprintf("error%02d", i)}})
 	} else {
 		logger(fmt.Sprintf("A request TestRequest{id:%s} arrived. Response will be sent back in %d",
 			request.(TestRequest).id, d))
 		time.Sleep(d)
-		responseChan <- ProtocolResponseSendOption{TestResponse{fmt.Sprintf("%02d", i)},
-			TestResponseOption{fmt.Sprintf("%02d", i)}}
+		responseFunc(ProtocolResponseSendOption{TestResponse{fmt.Sprintf("%02d", i)},
+			TestResponseOption{fmt.Sprintf("%02d", i)}})
 	}
-	close(responseChan)
 }
 
 //单次Heartbeat
