@@ -47,7 +47,7 @@ func (t TestResponseProtocol) Response(requestChan chan<- ReceivedRequest, respo
 func testRes(i uint64, logger func(string)) {
 	responser := NewResponser(TestResponseProtocol{&src, 30, fmt.Sprintf("%d", i)})
 	responseChan := make(chan ProtocolResponseSendOption, 1)
-	request, err := responser.Recv(responseChan, 1e7) /*********将该值调低可模拟超时情况**********/
+	request, err := responser.Recv(responseChan)
 	d := time.Duration(rand.Int31n(1e3) * 1e3)
 	if err != nil {
 		logger(err.Error())
