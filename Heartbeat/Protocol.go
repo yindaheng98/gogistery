@@ -21,33 +21,33 @@ type ReceivedRequest struct {
 }
 
 //自定义请求发送设置
-type CustomRequestSendOption interface {
+type RequestSendOption interface {
 }
 
 //自定义响应发送设置
-type CustomResponseSendOption interface {
+type ResponseSendOption interface {
 }
 
 //发送一个请求所需的信息
-type ProtocolRequestSendOption struct {
+type TobeSendRequest struct {
 	Request Request
-	Option  CustomRequestSendOption
+	Option  RequestSendOption
 }
 
 //发送一个响应所需的信息
-type ProtocolResponseSendOption struct {
+type TobeSendResponse struct {
 	Response Response
-	Option   CustomResponseSendOption
+	Option   ResponseSendOption
 }
 
 //心跳数据发送协议
 type RequestBeatProtocol interface {
 	//从只读channel responseChan中取出信息发出，并将发回的信息和错误放入只写channel responseChan
-	Request(requestChan <-chan ProtocolRequestSendOption, responseChan chan<- ReceivedResponse)
+	Request(requestChan <-chan TobeSendRequest, responseChan chan<- ReceivedResponse)
 }
 
 //心跳数据响应协议
 type ResponseBeatProtocol interface {
 	//接收到信息时将接收到的信息和错误放入只写channel requestChan，并从只读channel responseChan中取出信息发回
-	Response(requestChan chan<- ReceivedRequest, responseChan <-chan ProtocolResponseSendOption)
+	Response(requestChan chan<- ReceivedRequest, responseChan <-chan TobeSendResponse)
 }

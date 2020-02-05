@@ -4,20 +4,20 @@ import (
 	"github.com/yindaheng98/go-utility/Emitter"
 )
 
-type ProtocolRequestSendOptionErrorEmitter struct {
+type TobeSendRequestErrorEmitter struct {
 	*Emitter.ErrorEmitter
 }
 
-func newProtocolRequestSendOptionErrorEmitter() *ProtocolRequestSendOptionErrorEmitter {
-	return &ProtocolRequestSendOptionErrorEmitter{Emitter.NewErrorEmitter()}
+func newTobeSendRequestErrorEmitter() *TobeSendRequestErrorEmitter {
+	return &TobeSendRequestErrorEmitter{Emitter.NewErrorEmitter()}
 }
 
-func (e *ProtocolRequestSendOptionErrorEmitter) AddHandler(handler func(o ProtocolRequestSendOption, err error)) {
+func (e *TobeSendRequestErrorEmitter) AddHandler(handler func(o TobeSendRequest, err error)) {
 	e.ErrorEmitter.AddHandler(func(i interface{}, err error) {
-		handler(i.(ProtocolRequestSendOption), err)
+		handler(i.(TobeSendRequest), err)
 	})
 }
 
-func (e *ProtocolRequestSendOptionErrorEmitter) Emit(o ProtocolRequestSendOption, err error) {
+func (e *TobeSendRequestErrorEmitter) Emit(o TobeSendRequest, err error) {
 	e.ErrorEmitter.Emit(o, err)
 }
