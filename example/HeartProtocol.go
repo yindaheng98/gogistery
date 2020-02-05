@@ -2,8 +2,8 @@ package example
 
 import (
 	"fmt"
-	"gogistery/Heart"
 	"gogistery/Heartbeat"
+	"gogistery/Protocol"
 	"time"
 )
 
@@ -16,11 +16,11 @@ type ResponserBeat struct {
 	n uint64
 }
 
-func (r ResponserBeat) Print() string {
-	return fmt.Sprintf("ResponserBeat{%s,n:%d}", r.Response.Print(), r.n)
+func (r ResponserBeat) String() string {
+	return fmt.Sprintf("ResponserBeat{%s,n:%d}", r.Response.String(), r.n)
 }
-func (r RequesterBeat) Print() string {
-	return fmt.Sprintf("RequesterBeat{%s,n:%d}", r.Request.Print(), r.n)
+func (r RequesterBeat) String() string {
+	return fmt.Sprintf("RequesterBeat{%s,n:%d}", r.Request.String(), r.n)
 }
 
 type RequesterBeatSendOption struct {
@@ -32,56 +32,57 @@ type ResponserBeatSendOption struct {
 	ResponseSendOption
 }
 
-func (r RequesterBeatSendOption) Print() string {
-	return fmt.Sprintf("ResponserBeat{%s,timeout:%d,retryN:%d}", r.RequestSendOption.Print(), r.timeout, r.retryN)
+func (r RequesterBeatSendOption) String() string {
+	return fmt.Sprintf("ResponserBeat{%s,timeout:%d,retryN:%d}", r.RequestSendOption.String(), r.timeout, r.retryN)
 }
-func (r ResponserBeatSendOption) Print() string {
-	return fmt.Sprintf("RequesterBeat{%s}", r.ResponseSendOption.Print())
+func (r ResponserBeatSendOption) String() string {
+	return fmt.Sprintf("RequesterBeat{%s}", r.ResponseSendOption.String())
 }
 
 type RequesterHeartProtocol struct {
 	requester *Heartbeat.Requester
 }
 
-func (r RequesterHeartProtocol) Request(beat Heart.TobeSendRequesterBeat) (Heart.ResponserBeat, error) {
+func (r RequesterHeartProtocol) Request(request Protocol.TobeSendRequest) (Protocol.Response, error) {
 	s := "\n------RequesterHeartProtocol.Request------>"
-	b := beat.RequesterBeat.(RequesterBeat)
-	o := beat.SendOption.(RequesterBeatSendOption)
-	s += fmt.Sprintf("A %s is sending with %s. ", b.Print(), o.Print())
-	response, err := r.requester.Send(Heartbeat.TobeSendRequest{Request: b.Request, Option: o.RequestSendOption}, o.timeout, o.retryN)
+	req, opt := request.Request.(RequesterBeat), request.Option.(RequesterBeatSendOption)
+	s += fmt.Sprintf("A %s is sending with %s. ", req.String(), opt.String())
+	response, err := r.requester.Send(
+		Protocol.TobeSendRequest{Request: req.Request, Option: opt.RequestSendOption},
+		opt.timeout, opt.retryN)
 	if err != nil {
 		fmt.Print(s + fmt.Sprintf("Send failed, and the error is: %s", err.Error()))
 		return nil, err
 	}
-	fmt.Print(s + fmt.Sprintf("Send success, and the response is: %s", response.(Response).Print()))
-	return ResponserBeat{response.(Response), b.n}, nil
+	fmt.Print(s + fmt.Sprintf("Send success, and the response is: %s", response.(Response).String()))
+	return ResponserBeat{response.(Response), req.n}, nil
 }
-func (r RequesterHeartProtocol) Beat(request Heart.TobeSendRequesterBeat, response Heart.ResponserBeat, beat func(Heart.TobeSendRequesterBeat)) {
+func (r RequesterHeartProtocol) Beat(request Protocol.TobeSendRequest, response Protocol.Response, beat func(Protocol.TobeSendRequest)) {
 	s := "\n------RequesterHeartProtocol.Beat------>"
-	s += fmt.Sprintf("A beat %s,%s->%s was success. ",
-		request.RequesterBeat.(RequesterBeat).Print(),
-		request.SendOption.(RequesterBeatSendOption).Print(),
-		response.(ResponserBeat).Print())
-	req := request.RequesterBeat.(RequesterBeat)
+	req, opt := request.Request.(RequesterBeat), request.Option.(RequesterBeatSendOption)
+	s += fmt.Sprintf("A beat %s,%s->%s was success. ", req.String(), opt.String(), response.String())
 	req.n++
 	if req.n < 10 {
-		nextReq := Heart.TobeSendRequesterBeat{RequesterBeat: req, SendOption: request.SendOption}
+		nextReq := Protocol.TobeSendRequest{Request: req, Option: opt}
 		s += fmt.Sprintf("And the next beat is %s,%s",
-			nextReq.RequesterBeat.(RequesterBeat).Print(),
-			nextReq.SendOption.(RequesterBeatSendOption).Print())
+			nextReq.Request.(RequesterBeat).String(),
+			nextReq.Option.(RequesterBeatSendOption).String())
 		beat(nextReq)
 	}
 }
 
 /*
 type ResponserHeartProtocol struct {
+	responser *Heartbeat.Responser
 }
 
-func (r ResponserHeartProtocol) Response() (Heart.RequesterBeat, error, func(Heart.TobeSendResponserBeat)) {
-
+func (r ResponserHeartProtocol) Response() (Protocol.Request, error, func(Protocol.TobeSendResponse)) {
+	beat, err, resF := r.responser.Recv()
+	request := beat.(RequesterBeat)
+	return beat.(RequesterBeat)
 }
 
-func (r ResponserHeartProtocol) Beat(request Heart.RequesterBeat) Heart.TobeSendResponserBeat {
+func (r ResponserHeartProtocol) Beat(request Protocol.Request) Protocol.TobeSendResponse {
 
 }
 */

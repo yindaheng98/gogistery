@@ -8,7 +8,7 @@ type RequesterHeartProtocol interface {
 	//启下：对接下层协议
 	//
 	//发送一个Beat数据请求，并返回响应和错误
-	Request(beat Protocol.TobeSendRequest) (Protocol.Response, error)
+	Request(request Protocol.TobeSendRequest) (Protocol.Response, error)
 
 	//承上：对接上层消息策略
 	//
