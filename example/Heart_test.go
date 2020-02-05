@@ -1,33 +1,30 @@
 package example
 
 import (
-	"fmt"
 	"gogistery/Heart"
 	"gogistery/Heartbeat"
 	"gogistery/Protocol"
+	ExampleHeartbeat "gogistery/example/Heartbeat"
 	"testing"
 	"time"
 )
 
 func TestRequesterHeart(t *testing.T) {
-	i := 1
 	requester := Heart.NewRequesterHeart(
-		RequesterHeartProtocol{
-			Heartbeat.NewRequester(&RequestBeatProtocol{&src, 30, 0})})
+		RequesterHeartProtocol{requester: Heartbeat.NewRequester(ExampleHeartbeat.NewRequestBeatProtocol())})
 	err := requester.RunBeating(
-		Protocol.TobeSendRequest{
-			Request: RequesterBeat{
-				Request: Request{id: fmt.Sprintf("%d", i)},
-				n:       0},
-			Option: RequesterBeatSendOption{
-				RequestSendOption: RequestSendOption{
-					id:   fmt.Sprintf("%d", i),
-					addr: fmt.Sprintf("%d.%d.%d.%d", i, i, i, i)},
-				timeout: time.Duration(5e8), /*********将该值调低可模拟超时情况**********/
-				retryN:  10}})
+		Heart.TobeSendRequest{
+			Request: Protocol.TobeSendRequest{
+				Request: ExampleHeartbeat.Request{ID: "0"},
+				Option:  ExampleHeartbeat.RequestSendOption{ID: "0", Addr: "0.0.0.0"}},
+			Option: RequestSendOption{"0", time.Duration(1e9), 10, 0}})
 	t.Log(err)
 }
 
 func TestResponserHeart(t *testing.T) {
-
+	responser := Heart.NewResponserHeart(
+		ResponserHeartProtocol{responser: Heartbeat.NewResponser(ExampleHeartbeat.NewResponseBeatProtocol("0"))})
+	go responser.RunBeating()
+	time.Sleep(2e9)
+	responser.Stop()
 }

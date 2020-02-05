@@ -1,4 +1,4 @@
-package example
+package Heartbeat
 
 import (
 	"errors"
@@ -9,40 +9,47 @@ import (
 	"time"
 )
 
+var src = rand.NewSource(10)
+var failRate int32 = 30
+
 type Response struct {
-	id string
+	ID string
 }
 
 type Request struct {
-	id string
+	ID string
 }
 
 func (r Response) String() string {
-	return fmt.Sprintf("Response{id:%s}", r.id)
+	return fmt.Sprintf("Response{id:%s}", r.ID)
 }
 func (r Request) String() string {
-	return fmt.Sprintf("Request{id:%s}", r.id)
+	return fmt.Sprintf("Request{id:%s}", r.ID)
 }
 
 type RequestSendOption struct {
-	id   string
-	addr string
+	ID   string
+	Addr string
 }
 type ResponseSendOption struct {
-	id string
+	ID string
 }
 
 func (o RequestSendOption) String() string {
-	return fmt.Sprintf("RequestSendOption{id:%s,addr:%s}", o.id, o.addr)
+	return fmt.Sprintf("RequestSendOption{id:%s,addr:%s}", o.ID, o.Addr)
 }
 func (o ResponseSendOption) String() string {
-	return fmt.Sprintf("ResponseSendOption{id:%s}", o.id)
+	return fmt.Sprintf("ResponseSendOption{id:%s}", o.ID)
 }
 
 type RequestBeatProtocol struct {
 	src       *rand.Source
 	failRate  int32
 	responseN uint32
+}
+
+func NewRequestBeatProtocol() *RequestBeatProtocol {
+	return &RequestBeatProtocol{&src, failRate, 0}
 }
 
 func (t *RequestBeatProtocol) Request(requestChan <-chan Protocol.TobeSendRequest, responseChan chan<- Protocol.ReceivedResponse) {
@@ -75,6 +82,10 @@ type ResponseBeatProtocol struct {
 	src      *rand.Source
 	failRate int32
 	id       string
+}
+
+func NewResponseBeatProtocol(id string) *ResponseBeatProtocol {
+	return &ResponseBeatProtocol{&src, failRate, id}
 }
 
 func (t ResponseBeatProtocol) Response(requestChan chan<- Protocol.ReceivedRequest, responseChan <-chan Protocol.TobeSendResponse) {

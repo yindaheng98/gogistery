@@ -25,7 +25,7 @@ func (h *ResponserHeart) RunBeating() {
 	for {
 		var request Protocol.Request
 		var err error
-		var responseFunc func(Protocol.TobeSendResponse)
+		var responseFunc func(TobeSendResponse)
 		responseChan := make(chan bool, 1)
 		go func() {
 			request, err, responseFunc = h.proto.Response()
