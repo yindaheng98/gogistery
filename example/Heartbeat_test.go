@@ -12,7 +12,7 @@ var src = rand.NewSource(10)
 
 func testReq(i uint64, logger func(string)) {
 	s := "------TestMyRequester------>"
-	requester := Heartbeat.NewRequester(&MyRequestProtocol{&src, 30, 0})
+	requester := Heartbeat.NewRequester(&MyRequestBeatProtocol{&src, 30, 0})
 	requester.Events.Retry.AddHandler(func(o Heartbeat.ProtocolRequestSendOption, err error) {
 		logger(s + fmt.Sprintf("An retry was occured. error: %s", err.Error()))
 	})
@@ -43,7 +43,7 @@ func TestMyRequester(t *testing.T) {
 
 func testRes(i uint64, logger func(string)) {
 	s := "------TestMyResponser------>"
-	responser := Heartbeat.NewResponser(MyResponseProtocol{&src, 30, fmt.Sprintf("%d", i)})
+	responser := Heartbeat.NewResponser(MyResponseBeatProtocol{&src, 30, fmt.Sprintf("%d", i)})
 	request, err, responseFunc := responser.Recv()
 	d := time.Duration(rand.Int31n(1e3) * 1e3)
 	if err != nil {
