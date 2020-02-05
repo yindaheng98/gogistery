@@ -2,29 +2,30 @@ package Heartbeat
 
 import (
 	"errors"
+	"gogistery/Protocol"
 )
 
 type Responser struct {
-	proto ResponseBeatProtocol
+	proto Protocol.ResponseBeatProtocol
 }
 
-func NewResponser(proto ResponseBeatProtocol) *Responser {
+func NewResponser(proto Protocol.ResponseBeatProtocol) *Responser {
 	return &Responser{proto}
 }
 
 //此channel将返回接收到的Request和一个处理Response的函数
-func (r *Responser) Recv() (Request, error, func(TobeSendResponse)) {
-	requestProtoChan := make(chan ReceivedRequest, 1)
+func (r *Responser) Recv() (Protocol.Request, error, func(Protocol.TobeSendResponse)) {
+	requestProtoChan := make(chan Protocol.ReceivedRequest, 1)
 	defer func() {
 		defer func() { recover() }()
 		close(requestProtoChan) //退出时关闭通道
 	}()
-	responseProtoChan := make(chan TobeSendResponse, 1)
+	responseProtoChan := make(chan Protocol.TobeSendResponse, 1)
 	go r.proto.Response(requestProtoChan, responseProtoChan) //异步执行Protocol的接收协议
 	request, ok := <-requestProtoChan                        //等待接收数据到达
 
 	//response处理函数
-	responseFunc := func(response TobeSendResponse) {
+	responseFunc := func(response Protocol.TobeSendResponse) {
 		defer func() { recover() }()
 		responseProtoChan <- response //传入到底层协议
 		close(responseProtoChan)      //退出时关闭通道

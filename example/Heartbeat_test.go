@@ -3,6 +3,7 @@ package example
 import (
 	"fmt"
 	"gogistery/Heartbeat"
+	"gogistery/Protocol"
 	"math/rand"
 	"testing"
 	"time"
@@ -13,11 +14,11 @@ var src = rand.NewSource(10)
 func testReq(i uint64, logger func(string)) {
 	s := "------TestRequester------>"
 	requester := Heartbeat.NewRequester(&RequestBeatProtocol{&src, 30, 0})
-	requester.Events.Retry.AddHandler(func(o Heartbeat.TobeSendRequest, err error) {
+	requester.Events.Retry.AddHandler(func(o Protocol.TobeSendRequest, err error) {
 		logger(s + fmt.Sprintf("An retry was occured. error: %s", err.Error()))
 	})
 	requester.Events.Retry.Enable()
-	response, err := requester.Send(Heartbeat.TobeSendRequest{
+	response, err := requester.Send(Protocol.TobeSendRequest{
 		Request: Request{fmt.Sprintf("%02d", i)},
 		Option: RequestSendOption{
 			fmt.Sprintf("%02d", i),
@@ -28,7 +29,7 @@ func testReq(i uint64, logger func(string)) {
 		logger(s + fmt.Sprintf("No.%02d test failed. err is %s", i, err.Error()))
 		return
 	}
-	logger(s + fmt.Sprintf("No.%02d sending test succeed. response is %s", i, response.(Response).Print()))
+	logger(s + fmt.Sprintf("No.%02d sending test succeed. response is %s", i, response.(Response).String()))
 }
 
 //单次Heartbeat
@@ -49,13 +50,13 @@ func testRes(i uint64, logger func(string)) {
 	if err != nil {
 		logger(s + err.Error())
 		time.Sleep(d)
-		responseFunc(Heartbeat.TobeSendResponse{Response: Response{fmt.Sprintf("error%02d", i)},
+		responseFunc(Protocol.TobeSendResponse{Response: Response{fmt.Sprintf("error%02d", i)},
 			Option: ResponseSendOption{fmt.Sprintf("error%02d", i)}})
 	} else {
 		logger(s + fmt.Sprintf("A request %s arrived. Response will be sent back in %d",
-			request.(Request).Print(), d))
+			request.(Request).String(), d))
 		time.Sleep(d)
-		responseFunc(Heartbeat.TobeSendResponse{Response: Response{fmt.Sprintf("%02d", i)},
+		responseFunc(Protocol.TobeSendResponse{Response: Response{fmt.Sprintf("%02d", i)},
 			Option: ResponseSendOption{fmt.Sprintf("%02d", i)}})
 	}
 }

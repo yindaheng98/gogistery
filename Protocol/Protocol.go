@@ -1,29 +1,67 @@
 package Protocol
 
-import "gogistery/Controller"
+import "fmt"
 
-//此类用于在Requester中传递Responser回传的信息或发送失败传回的错误信息
-type RequestChanElement struct {
-	Request Controller.Request
-	Error   error
+//心跳数据请求基础类
+type Request interface {
+	String() string
 }
 
-type Requester interface {
-	//将request发送到addr去，并将返回的信息和错误入responseChan
-	//
-	//每一次发送都调用一次此函数。如果超时，responseChan将直接关闭，请自行处理超时panic
-	Send(request Controller.Request, addr string, responseChan chan RequestChanElement)
+//心跳数据响应基础类
+type Response interface {
+	String() string
 }
 
-//此类用于在Responser中传递接收到的信息或接收失败传回的错误信息
-type ResponseChanElement struct {
-	Response Controller.Response
+//此类用于存储request端收到的response和错误信息
+type ReceivedResponse struct {
+	Response Response
 	Error    error
 }
 
-type Responser interface {
-	//接收到信息时将接收到的信息和错误入requestChan，并从responseChan中取出信息发回
-	//
-	//每收发一轮就调用一次此函数
-	Recv(requestChan chan RequestChanElement, responseChan chan Controller.Response)
+//此类用于存储response端收到的request和错误信息
+type ReceivedRequest struct {
+	Request Request
+	Error   error
+}
+
+//自定义请求发送设置
+type RequestSendOption interface {
+	String() string
+}
+
+//自定义响应发送设置
+type ResponseSendOption interface {
+	String() string
+}
+
+//发送一个请求所需的信息
+type TobeSendRequest struct {
+	Request Request
+	Option  RequestSendOption
+}
+
+func (r TobeSendRequest) String() string {
+	return fmt.Sprintf("TobeSendRequest{Request:%s,Option:%s}", r.Request.String(), r.Option.String())
+}
+
+//发送一个响应所需的信息
+type TobeSendResponse struct {
+	Response Response
+	Option   ResponseSendOption
+}
+
+func (r TobeSendResponse) String() string {
+	return fmt.Sprintf("TobeSendResponse{Response:%s,Option:%s}", r.Response.String(), r.Option.String())
+}
+
+//心跳数据发送协议
+type RequestBeatProtocol interface {
+	//从只读channel responseChan中取出信息发出，并将发回的信息和错误放入只写channel responseChan
+	Request(requestChan <-chan TobeSendRequest, responseChan chan<- ReceivedResponse)
+}
+
+//心跳数据响应协议
+type ResponseBeatProtocol interface {
+	//接收到信息时将接收到的信息和错误放入只写channel requestChan，并从只读channel responseChan中取出信息发回
+	Response(requestChan chan<- ReceivedRequest, responseChan <-chan TobeSendResponse)
 }

@@ -2,6 +2,7 @@ package Heartbeat
 
 import (
 	"errors"
+	"gogistery/Protocol"
 	"time"
 )
 
@@ -10,16 +11,16 @@ type requesterEvents struct {
 }
 
 type Requester struct {
-	proto  RequestBeatProtocol
+	proto  Protocol.RequestBeatProtocol
 	Events *requesterEvents
 }
 
-func NewRequester(proto RequestBeatProtocol) *Requester {
+func NewRequester(proto Protocol.RequestBeatProtocol) *Requester {
 	return &Requester{proto, &requesterEvents{newTobeSendRequestErrorEmitter()}}
 }
 
 //多次重试发送并等待回复，直到成功或达到重试次数上限
-func (r *Requester) Send(option TobeSendRequest, timeout time.Duration, retryN int64) (Response, error) {
+func (r *Requester) Send(option Protocol.TobeSendRequest, timeout time.Duration, retryN int64) (Protocol.Response, error) {
 	for i := retryN; i > 0; i-- {
 		response, err := r.SendOnce(option, timeout)
 		if err == nil {
@@ -31,13 +32,13 @@ func (r *Requester) Send(option TobeSendRequest, timeout time.Duration, retryN i
 }
 
 //发送并等待回复，直到成功或超时
-func (r *Requester) SendOnce(option TobeSendRequest, timeout time.Duration) (Response, error) {
-	responseChan := make(chan ReceivedResponse, 1)
+func (r *Requester) SendOnce(option Protocol.TobeSendRequest, timeout time.Duration) (Protocol.Response, error) {
+	responseChan := make(chan Protocol.ReceivedResponse, 1)
 	defer func() {
 		defer func() { recover() }()
 		close(responseChan) //退出时关闭通道
 	}()
-	requestChan := make(chan TobeSendRequest, 1)
+	requestChan := make(chan Protocol.TobeSendRequest, 1)
 	defer func() {
 		defer func() { recover() }()
 		close(requestChan) //退出时关闭通道

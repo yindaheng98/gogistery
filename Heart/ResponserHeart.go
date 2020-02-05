@@ -1,5 +1,9 @@
 package Heart
 
+import (
+	"gogistery/Protocol"
+)
+
 type responserEvent struct {
 	Error *ErrorEmitter
 }
@@ -19,9 +23,9 @@ func NewResponserHeart(proto ResponserHeartProtocol) *ResponserHeart {
 //开始接收心跳，直到主动停止
 func (h *ResponserHeart) RunBeating() {
 	for {
-		var request RequesterBeat
+		var request Protocol.Request
 		var err error
-		var responseFunc func(TobeSendResponserBeat)
+		var responseFunc func(Protocol.TobeSendResponse)
 		responseChan := make(chan bool, 1)
 		go func() {
 			request, err, responseFunc = h.proto.Response()
