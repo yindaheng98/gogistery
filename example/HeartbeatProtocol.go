@@ -36,7 +36,8 @@ func (t *MyRequestProtocol) Request(requestChan <-chan Heartbeat.ProtocolRequest
 	atomic.AddUint32(&t.responseN, 1)
 	protoRequest := <-requestChan
 	request, option := protoRequest.Request, protoRequest.Option
-	s := fmt.Sprintf("\nIt was sending attempt %02d in protocol. MyRequest{id:%s} is sending to %s. ",
+	s := "\n------MyRequestProtocol------>"
+	s += fmt.Sprintf("It was sending attempt %02d in protocol. MyRequest{id:%s} is sending to %s. ",
 		t.responseN, request.(MyRequest).id, option.(MyRequestOption).addr)
 	timeout := time.Duration(rand.Int63n(1e3) * 1e3)
 	s += fmt.Sprintf("Response will arrived in %d. ", timeout)
@@ -66,7 +67,8 @@ type MyResponseProtocol struct {
 func (t MyResponseProtocol) Response(requestChan chan<- Heartbeat.ReceivedRequest, responseChan <-chan Heartbeat.ProtocolResponseSendOption) {
 	time.Sleep(time.Duration(rand.Int31n(1e3) * 1e3))
 	request := MyRequest{t.id}
-	s := fmt.Sprintf("\nA request MyRequest{id:%s} arrived in protocol. ", request.id)
+	s := "\n------MyResponseProtocol------>"
+	s += fmt.Sprintf("A request MyRequest{id:%s} arrived in protocol. ", request.id)
 
 	r := rand.New(*t.src).Int31n(100)
 	if r < t.failRate {
