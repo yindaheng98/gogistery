@@ -3,7 +3,7 @@ package Heart
 type RequesterHeartbeat interface{}
 type ResponserHeartbeat interface{}
 
-type RequesterHeartbeatProtocol interface {
+type RequesterHeartProtocol interface {
 	//启下：对接下层协议
 	//
 	//发送一个Heartbeat数据请求，并返回响应和错误
@@ -15,7 +15,7 @@ type RequesterHeartbeatProtocol interface {
 	Beat(request RequesterHeartbeat, response ResponserHeartbeat, beat func(RequesterHeartbeat))
 }
 
-type ResponserHeartbeatProtocol interface {
+type ResponserHeartProtocol interface {
 	//启下：对接下层协议
 	//
 	//接收一个Heartbeat数据请求，并从响应队列中取出响应发回

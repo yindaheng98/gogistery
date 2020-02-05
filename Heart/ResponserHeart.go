@@ -5,7 +5,7 @@ type responserEvent struct {
 }
 
 type ResponserHeart struct {
-	proto         ResponserHeartbeatProtocol
+	proto         ResponserHeartProtocol
 	Event         *responserEvent
 	interruptChan chan bool
 }
