@@ -5,10 +5,10 @@ import (
 )
 
 type Responser struct {
-	proto ResponseProtocol
+	proto ResponseBeatProtocol
 }
 
-func NewResponser(proto ResponseProtocol) *Responser {
+func NewResponser(proto ResponseBeatProtocol) *Responser {
 	return &Responser{proto}
 }
 

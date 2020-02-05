@@ -41,13 +41,13 @@ type ProtocolResponseSendOption struct {
 }
 
 //心跳数据发送协议
-type RequestProtocol interface {
+type RequestBeatProtocol interface {
 	//从只读channel responseChan中取出信息发出，并将发回的信息和错误放入只写channel responseChan
 	Request(requestChan <-chan ProtocolRequestSendOption, responseChan chan<- ReceivedResponse)
 }
 
 //心跳数据响应协议
-type ResponseProtocol interface {
+type ResponseBeatProtocol interface {
 	//接收到信息时将接收到的信息和错误放入只写channel requestChan，并从只读channel responseChan中取出信息发回
 	Response(requestChan chan<- ReceivedRequest, responseChan <-chan ProtocolResponseSendOption)
 }

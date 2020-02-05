@@ -10,11 +10,11 @@ type requesterEvents struct {
 }
 
 type Requester struct {
-	proto  RequestProtocol
+	proto  RequestBeatProtocol
 	Events *requesterEvents
 }
 
-func NewRequester(proto RequestProtocol) *Requester {
+func NewRequester(proto RequestBeatProtocol) *Requester {
 	return &Requester{proto, &requesterEvents{newProtocolRequestSendOptionErrorEmitter()}}
 }
 
