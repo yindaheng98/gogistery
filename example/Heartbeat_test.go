@@ -13,11 +13,11 @@ var src = rand.NewSource(10)
 func testReq(i uint64, logger func(string)) {
 	s := "------TestMyRequester------>"
 	requester := Heartbeat.NewRequester(&MyRequestBeatProtocol{&src, 30, 0})
-	requester.Events.Retry.AddHandler(func(o Heartbeat.ProtocolRequestSendOption, err error) {
+	requester.Events.Retry.AddHandler(func(o Heartbeat.TobeSendRequest, err error) {
 		logger(s + fmt.Sprintf("An retry was occured. error: %s", err.Error()))
 	})
 	requester.Events.Retry.Enable()
-	response, err := requester.Send(Heartbeat.ProtocolRequestSendOption{
+	response, err := requester.Send(Heartbeat.TobeSendRequest{
 		Request: MyRequest{fmt.Sprintf("%02d", i)},
 		Option: MyRequestOption{
 			fmt.Sprintf("%02d", i),
@@ -49,13 +49,13 @@ func testRes(i uint64, logger func(string)) {
 	if err != nil {
 		logger(s + err.Error())
 		time.Sleep(d)
-		responseFunc(Heartbeat.ProtocolResponseSendOption{Response: MyResponse{fmt.Sprintf("error%02d", i)},
+		responseFunc(Heartbeat.TobeSendResponse{Response: MyResponse{fmt.Sprintf("error%02d", i)},
 			Option: MyResponseOption{fmt.Sprintf("error%02d", i)}})
 	} else {
 		logger(s + fmt.Sprintf("A request MyRequest{id:%s} arrived. Response will be sent back in %d",
 			request.(MyRequest).id, d))
 		time.Sleep(d)
-		responseFunc(Heartbeat.ProtocolResponseSendOption{Response: MyResponse{fmt.Sprintf("%02d", i)},
+		responseFunc(Heartbeat.TobeSendResponse{Response: MyResponse{fmt.Sprintf("%02d", i)},
 			Option: MyResponseOption{fmt.Sprintf("%02d", i)}})
 	}
 }

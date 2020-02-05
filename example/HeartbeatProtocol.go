@@ -32,7 +32,7 @@ type MyRequestBeatProtocol struct {
 	responseN uint32
 }
 
-func (t *MyRequestBeatProtocol) Request(requestChan <-chan Heartbeat.ProtocolRequestSendOption, responseChan chan<- Heartbeat.ReceivedResponse) {
+func (t *MyRequestBeatProtocol) Request(requestChan <-chan Heartbeat.TobeSendRequest, responseChan chan<- Heartbeat.ReceivedResponse) {
 	atomic.AddUint32(&t.responseN, 1)
 	protoRequest := <-requestChan
 	request, option := protoRequest.Request, protoRequest.Option
@@ -64,7 +64,7 @@ type MyResponseBeatProtocol struct {
 	id       string
 }
 
-func (t MyResponseBeatProtocol) Response(requestChan chan<- Heartbeat.ReceivedRequest, responseChan <-chan Heartbeat.ProtocolResponseSendOption) {
+func (t MyResponseBeatProtocol) Response(requestChan chan<- Heartbeat.ReceivedRequest, responseChan <-chan Heartbeat.TobeSendResponse) {
 	time.Sleep(time.Duration(rand.Int31n(1e3) * 1e3))
 	request := MyRequest{t.id}
 	s := "\n------MyResponseBeatProtocol------>"

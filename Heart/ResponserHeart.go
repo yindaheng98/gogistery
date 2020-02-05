@@ -10,12 +10,18 @@ type ResponserHeart struct {
 	interruptChan chan bool
 }
 
+func NewResponserHeart(proto ResponserHeartProtocol) *ResponserHeart {
+	return &ResponserHeart{proto,
+		&responserEvent{newErrorEmitter()},
+		make(chan bool, 1)}
+}
+
 //开始接收心跳，直到主动停止
 func (h *ResponserHeart) RunBeating() {
 	for {
-		var request RequesterHeartbeat
+		var request RequesterBeat
 		var err error
-		var responseFunc func(ResponserHeartbeat)
+		var responseFunc func(TobeSendResponserBeat)
 		responseChan := make(chan bool, 1)
 		go func() {
 			request, err, responseFunc = h.proto.Response()
