@@ -9,37 +9,50 @@ import (
 	"time"
 )
 
-type MyResponse struct {
+type Response struct {
 	id string
 }
 
-type MyRequest struct {
+type Request struct {
 	id string
 }
 
-type MyRequestOption struct {
+func (r Response) Print() string {
+	return fmt.Sprintf("Response{id:%s}", r.id)
+}
+func (r Request) Print() string {
+	return fmt.Sprintf("Request{id:%s}", r.id)
+}
+
+type RequestOption struct {
 	id   string
 	addr string
 }
-
-type MyResponseOption struct {
+type ResponseOption struct {
 	id string
 }
 
-type MyRequestBeatProtocol struct {
+func (o RequestOption) Print() string {
+	return fmt.Sprintf("RequestOption{id:%s,addr:%s}", o.id, o.addr)
+}
+func (o ResponseOption) Print() string {
+	return fmt.Sprintf("ResponseOption{id:%s}", o.id)
+}
+
+type RequestBeatProtocol struct {
 	src       *rand.Source
 	failRate  int32
 	responseN uint32
 }
 
-func (t *MyRequestBeatProtocol) Request(requestChan <-chan Heartbeat.TobeSendRequest, responseChan chan<- Heartbeat.ReceivedResponse) {
+func (t *RequestBeatProtocol) Request(requestChan <-chan Heartbeat.TobeSendRequest, responseChan chan<- Heartbeat.ReceivedResponse) {
 	atomic.AddUint32(&t.responseN, 1)
 	protoRequest := <-requestChan
-	request, option := protoRequest.Request, protoRequest.Option
-	s := "\n------MyRequestBeatProtocol------>"
-	s += fmt.Sprintf("It was sending attempt %02d in protocol. MyRequest{id:%s} is sending to %s. ",
-		t.responseN, request.(MyRequest).id, option.(MyRequestOption).addr)
-	timeout := time.Duration(rand.Int63n(1e3) * 1e3)
+	request, option := protoRequest.Request.(Request), protoRequest.Option.(RequestOption)
+	s := "\n------RequestBeatProtocol------>"
+	s += fmt.Sprintf("It was sending attempt %02d in protocol. %s is sending with %s. ",
+		t.responseN, request.Print(), option.Print())
+	timeout := time.Duration(rand.Int63n(1e3) * 1e6)
 	s += fmt.Sprintf("Response will arrived in %d. ", timeout)
 	defer func() {
 		if recover() != nil {
@@ -54,21 +67,21 @@ func (t *MyRequestBeatProtocol) Request(requestChan <-chan Heartbeat.TobeSendReq
 		return
 	}
 	time.Sleep(timeout)
-	responseChan <- Heartbeat.ReceivedResponse{Response: MyResponse{fmt.Sprintf("%02d", t.responseN)}}
+	responseChan <- Heartbeat.ReceivedResponse{Response: Response{fmt.Sprintf("%02d", t.responseN)}}
 	fmt.Print(s + "This Sending was success.")
 }
 
-type MyResponseBeatProtocol struct {
+type ResponseBeatProtocol struct {
 	src      *rand.Source
 	failRate int32
 	id       string
 }
 
-func (t MyResponseBeatProtocol) Response(requestChan chan<- Heartbeat.ReceivedRequest, responseChan <-chan Heartbeat.TobeSendResponse) {
+func (t ResponseBeatProtocol) Response(requestChan chan<- Heartbeat.ReceivedRequest, responseChan <-chan Heartbeat.TobeSendResponse) {
 	time.Sleep(time.Duration(rand.Int31n(1e3) * 1e3))
-	request := MyRequest{t.id}
-	s := "\n------MyResponseBeatProtocol------>"
-	s += fmt.Sprintf("A request MyRequest{id:%s} arrived in protocol. ", request.id)
+	request := Request{t.id}
+	s := "\n------ResponseBeatProtocol------>"
+	s += fmt.Sprintf("A request %s arrived in protocol. ", request.Print())
 
 	r := rand.New(*t.src).Int31n(100)
 	if r < t.failRate {
@@ -84,9 +97,8 @@ func (t MyResponseBeatProtocol) Response(requestChan chan<- Heartbeat.ReceivedRe
 	if !ok {
 		fmt.Print(s + "But the Response was timeouted.")
 	} else {
-		response, option := protoResponse.Response, protoResponse.Option
-		fmt.Print(s + fmt.Sprintf("And the Response is MyResponse{id:%s}, with the option MyResponseOption{id:%s}",
-			response.(MyResponse).id,
-			option.(MyResponseOption).id))
+		response, option := protoResponse.Response.(Response), protoResponse.Option.(ResponseOption)
+		fmt.Print(s + fmt.Sprintf("And the Response is %s, with the option %s",
+			response.Print(), option.Print()))
 	}
 }
