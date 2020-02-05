@@ -5,12 +5,12 @@ type ResponserBeat interface{}
 type RequesterBeatSendOption interface{}
 type ResponserBeatSendOption interface{}
 type TobeSendRequesterBeat struct {
-	Beat   RequesterBeat
-	Option RequesterBeatSendOption
+	RequesterBeat RequesterBeat
+	SendOption    RequesterBeatSendOption
 }
 type TobeSendResponserBeat struct {
-	Beat   ResponserBeat
-	Option ResponserBeatSendOption
+	ResponserBeat ResponserBeat
+	SendOption    ResponserBeatSendOption
 }
 
 type RequesterHeartProtocol interface {

@@ -24,19 +24,19 @@ func (r Request) Print() string {
 	return fmt.Sprintf("Request{id:%s}", r.id)
 }
 
-type RequestOption struct {
+type RequestSendOption struct {
 	id   string
 	addr string
 }
-type ResponseOption struct {
+type ResponseSendOption struct {
 	id string
 }
 
-func (o RequestOption) Print() string {
-	return fmt.Sprintf("RequestOption{id:%s,addr:%s}", o.id, o.addr)
+func (o RequestSendOption) Print() string {
+	return fmt.Sprintf("RequestSendOption{id:%s,addr:%s}", o.id, o.addr)
 }
-func (o ResponseOption) Print() string {
-	return fmt.Sprintf("ResponseOption{id:%s}", o.id)
+func (o ResponseSendOption) Print() string {
+	return fmt.Sprintf("ResponseSendOption{id:%s}", o.id)
 }
 
 type RequestBeatProtocol struct {
@@ -48,7 +48,7 @@ type RequestBeatProtocol struct {
 func (t *RequestBeatProtocol) Request(requestChan <-chan Heartbeat.TobeSendRequest, responseChan chan<- Heartbeat.ReceivedResponse) {
 	atomic.AddUint32(&t.responseN, 1)
 	protoRequest := <-requestChan
-	request, option := protoRequest.Request.(Request), protoRequest.Option.(RequestOption)
+	request, option := protoRequest.Request.(Request), protoRequest.Option.(RequestSendOption)
 	s := "\n------RequestBeatProtocol------>"
 	s += fmt.Sprintf("It was sending attempt %02d in protocol. %s is sending with %s. ",
 		t.responseN, request.Print(), option.Print())
@@ -97,7 +97,7 @@ func (t ResponseBeatProtocol) Response(requestChan chan<- Heartbeat.ReceivedRequ
 	if !ok {
 		fmt.Print(s + "But the Response was timeouted.")
 	} else {
-		response, option := protoResponse.Response.(Response), protoResponse.Option.(ResponseOption)
+		response, option := protoResponse.Response.(Response), protoResponse.Option.(ResponseSendOption)
 		fmt.Print(s + fmt.Sprintf("And the Response is %s, with the option %s",
 			response.Print(), option.Print()))
 	}

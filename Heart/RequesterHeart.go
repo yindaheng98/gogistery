@@ -11,7 +11,7 @@ func NewRequesterHeart(proto RequesterHeartProtocol) *RequesterHeart {
 //开始心跳，直到最后由协议主动停止心跳或出错才返回
 func (h *RequesterHeart) RunBeating(initRequestBeat TobeSendRequesterBeat) error {
 	request := initRequestBeat
-	for request.Beat != nil {
+	for request.RequesterBeat != nil {
 		if nextRequest, err := requesterBeat(request, h.proto); err != nil {
 			return err
 		} else {

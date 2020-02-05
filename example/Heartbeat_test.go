@@ -19,7 +19,7 @@ func testReq(i uint64, logger func(string)) {
 	requester.Events.Retry.Enable()
 	response, err := requester.Send(Heartbeat.TobeSendRequest{
 		Request: Request{fmt.Sprintf("%02d", i)},
-		Option: RequestOption{
+		Option: RequestSendOption{
 			fmt.Sprintf("%02d", i),
 			fmt.Sprintf("%02d.%02d.%02d.%02d", i, i, i, i)}},
 		time.Duration(5e8), /*********将该值调低可模拟超时情况**********/
@@ -50,13 +50,13 @@ func testRes(i uint64, logger func(string)) {
 		logger(s + err.Error())
 		time.Sleep(d)
 		responseFunc(Heartbeat.TobeSendResponse{Response: Response{fmt.Sprintf("error%02d", i)},
-			Option: ResponseOption{fmt.Sprintf("error%02d", i)}})
+			Option: ResponseSendOption{fmt.Sprintf("error%02d", i)}})
 	} else {
 		logger(s + fmt.Sprintf("A request %s arrived. Response will be sent back in %d",
 			request.(Request).Print(), d))
 		time.Sleep(d)
 		responseFunc(Heartbeat.TobeSendResponse{Response: Response{fmt.Sprintf("%02d", i)},
-			Option: ResponseOption{fmt.Sprintf("%02d", i)}})
+			Option: ResponseSendOption{fmt.Sprintf("%02d", i)}})
 	}
 }
 
