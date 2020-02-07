@@ -21,7 +21,7 @@ func testReq(i uint64, logger func(string)) {
 		Option: RequestSendOption{
 			fmt.Sprintf("%02d", i),
 			fmt.Sprintf("%02d.%02d.%02d.%02d", i, i, i, i)}},
-		time.Duration(5e8), /*********将该值调低可模拟超时情况**********/
+		time.Duration(50e8), /*********将该值调低可模拟超时情况**********/
 		10)
 	if err != nil {
 		logger(s + fmt.Sprintf("No.%02d test failed. err is %s", i, err.Error()))

@@ -20,7 +20,7 @@ func TestRequesterHeart(t *testing.T) {
 		Protocol.TobeSendRequest{
 			Request: ExampleHeartbeat.Request{ID: "1"},
 			Option:  ExampleHeartbeat.RequestSendOption{ID: "1", Addr: "1.1.1.1"}},
-		Heart.RequestSendOption{Timeout: 1e9, RetryN: 10})
+		Heart.RequestSendOption{Timeout: 1e10, RetryN: 10})
 	t.Log(err)
 }
 
