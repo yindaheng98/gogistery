@@ -1,4 +1,4 @@
-package Heartbeat
+package Heart
 
 import (
 	"errors"

@@ -10,12 +10,14 @@ type responserEvent struct {
 
 type ResponserHeart struct {
 	proto         ResponserHeartProtocol
+	responser     *Responser
 	Event         *responserEvent
 	interruptChan chan bool
 }
 
-func NewResponserHeart(proto ResponserHeartProtocol) *ResponserHeart {
-	return &ResponserHeart{proto,
+func NewResponserHeart(heartProto ResponserHeartProtocol, beatProto Protocol.ResponseBeatProtocol) *ResponserHeart {
+	return &ResponserHeart{heartProto,
+		NewResponser(beatProto),
 		&responserEvent{newErrorEmitter()},
 		make(chan bool, 1)}
 }
@@ -25,10 +27,10 @@ func (h *ResponserHeart) RunBeating() {
 	for {
 		var request Protocol.Request
 		var err error
-		var responseFunc func(TobeSendResponse)
+		var responseFunc func(Protocol.TobeSendResponse)
 		responseChan := make(chan bool, 1)
 		go func() {
-			request, err, responseFunc = h.proto.Response()
+			request, err, responseFunc = h.responser.Recv()
 			if err != nil {
 				h.Event.Error.Emit(err)
 			} else {

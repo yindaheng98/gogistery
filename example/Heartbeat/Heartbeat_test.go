@@ -2,7 +2,7 @@ package Heartbeat
 
 import (
 	"fmt"
-	"gogistery/Heartbeat"
+	"gogistery/Heart"
 	"gogistery/Protocol"
 	"math/rand"
 	"testing"
@@ -11,7 +11,7 @@ import (
 
 func testReq(i uint64, logger func(string)) {
 	s := "------TestRequester------>"
-	requester := Heartbeat.NewRequester(NewRequestBeatProtocol())
+	requester := Heart.NewRequester(NewRequestBeatProtocol())
 	requester.Events.Retry.AddHandler(func(o Protocol.TobeSendRequest, err error) {
 		logger(s + fmt.Sprintf("An retry was occured. error: %s", err.Error()))
 	})
@@ -42,7 +42,7 @@ func TestRequester(t *testing.T) {
 
 func testRes(i uint64, logger func(string)) {
 	s := "------TestResponser------>"
-	responser := Heartbeat.NewResponser(NewResponseBeatProtocol(fmt.Sprintf("%d", i)))
+	responser := Heart.NewResponser(NewResponseBeatProtocol(fmt.Sprintf("%d", i)))
 	request, err, responseFunc := responser.Recv()
 	d := time.Duration(rand.Int31n(1e3) * 1e3)
 	if err != nil {
