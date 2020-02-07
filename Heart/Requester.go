@@ -20,7 +20,7 @@ func NewRequester(proto Protocol.RequestBeatProtocol) *Requester {
 }
 
 //多次重试发送并等待回复，直到成功或达到重试次数上限
-func (r *Requester) Send(option Protocol.TobeSendRequest, timeout time.Duration, retryN int64) (Protocol.Response, error) {
+func (r *Requester) Send(option Protocol.TobeSendRequest, timeout time.Duration, retryN uint64) (Protocol.Response, error) {
 	for i := retryN; i > 0; i-- {
 		response, err := r.SendOnce(option, timeout)
 		if err == nil {

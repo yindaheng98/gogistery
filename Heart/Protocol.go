@@ -8,7 +8,7 @@ import (
 
 type RequestSendOption struct {
 	Timeout time.Duration
-	RetryN  int64
+	RetryN  uint64
 } //自定义请求发送设置
 
 func (r RequestSendOption) String() string {
