@@ -5,38 +5,20 @@ import (
 	"gogistery/Protocol"
 )
 
-type ErrorEmitter struct {
-	*Emitter.Emitter
-}
-
-func newErrorEmitter() *ErrorEmitter {
-	return &ErrorEmitter{Emitter.NewEmitter()}
-}
-
-func (e *ErrorEmitter) AddHandler(handler func(err error)) {
-	e.Emitter.AddHandler(func(err interface{}) {
-		handler(err.(error))
-	})
-}
-
-func (e *ErrorEmitter) Emit(err error) {
-	e.Emitter.Emit(err)
-}
-
 type TobeSendRequestErrorEmitter struct {
-	*Emitter.ErrorEmitter
+	*Emitter.ErrorInfoEmitter
 }
 
 func newTobeSendRequestErrorEmitter() *TobeSendRequestErrorEmitter {
-	return &TobeSendRequestErrorEmitter{Emitter.NewErrorEmitter()}
+	return &TobeSendRequestErrorEmitter{Emitter.NewErrorInfoEmitter()}
 }
 
 func (e *TobeSendRequestErrorEmitter) AddHandler(handler func(o Protocol.TobeSendRequest, err error)) {
-	e.ErrorEmitter.AddHandler(func(i interface{}, err error) {
+	e.ErrorInfoEmitter.AddHandler(func(i interface{}, err error) {
 		handler(i.(Protocol.TobeSendRequest), err)
 	})
 }
 
 func (e *TobeSendRequestErrorEmitter) Emit(o Protocol.TobeSendRequest, err error) {
-	e.ErrorEmitter.Emit(o, err)
+	e.ErrorInfoEmitter.Emit(o, err)
 }

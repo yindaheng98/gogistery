@@ -1,11 +1,12 @@
 package Heart
 
 import (
+	"github.com/yindaheng98/go-utility/Emitter"
 	"gogistery/Protocol"
 )
 
 type responserEvent struct {
-	Error *ErrorEmitter
+	Error *Emitter.ErrorEmitter
 }
 
 type ResponserHeart struct {
@@ -18,7 +19,7 @@ type ResponserHeart struct {
 func NewResponserHeart(heartProto ResponserHeartProtocol, beatProto Protocol.ResponseBeatProtocol) *ResponserHeart {
 	return &ResponserHeart{heartProto,
 		NewResponser(beatProto),
-		&responserEvent{newErrorEmitter()},
+		&responserEvent{Emitter.NewErrorEmitter()},
 		make(chan bool, 1)}
 }
 
