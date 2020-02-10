@@ -21,6 +21,9 @@ func (info registrantHandler) NewAddedHandler() {
 	info.registry.Events.NewConnection.Emit(info.RegistrantInfo)
 }
 func (info registrantHandler) TimeoutHandler() {
+	info.registry.Events.ConnectionTimeout.Emit(info.RegistrantInfo)
+}
+func (info registrantHandler) DeletedHandler() {
 	info.registry.Events.Disconnection.Emit(info.RegistrantInfo)
 }
 
