@@ -33,6 +33,7 @@ type RegistrantInfo interface {
 
 type Request interface { //服务器端收到的请求
 	RegistrantInfo
+	ToDisconnect() bool
 	String() string
 }
 

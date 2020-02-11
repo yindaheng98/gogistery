@@ -82,6 +82,10 @@ func (r *Registry) GetConnections() []RegistrantInfo {
 func (r *Registry) register(request Request) (time.Duration, bool) {
 	r.timeoutMapMu.Lock()
 	defer r.timeoutMapMu.Unlock()
+	if request.ToDisconnect() { //如果主动断开连接
+		r.timeoutMap.Delete(request.GetRegistrantID()) //则直接删除
+		return 0, false
+	}
 	if _, ok := r.timeoutMap.GetElement(request.GetRegistrantID()); !ok && r.timeoutMap.Count() >= r.maxRegistrants {
 		return 0, false //连接不存在且已达到最大连接数，则拒绝连接
 	}

@@ -19,10 +19,14 @@ func (info RegistrantInfo) GetRegistrantID() string {
 
 type Request struct {
 	RegistrantInfo
-	RequestTime time.Time
-	LastRetryN  uint64
+	toDisconnect bool
+	RequestTime  time.Time
+	LastRetryN   uint64
 }
 
+func (r Request) ToDisconnect() bool {
+	return r.toDisconnect
+}
 func (r Request) String() string {
 	return fmt.Sprintf("Request{RegistrantInfo{id:%s,addr:%s},LastRetryN:%d}", r.ID, r.Addr, r.LastRetryN)
 }
