@@ -1,6 +1,9 @@
 package Heart
 
-import "gogistery/Protocol"
+import (
+	"gogistery/Protocol"
+	"time"
+)
 
 type RequesterHeart struct {
 	proto     RequesterHeartProtocol
@@ -14,17 +17,17 @@ func NewRequesterHeart(heartProto RequesterHeartProtocol, beatProto Protocol.Req
 }
 
 //开始心跳，直到最后由协议主动停止心跳或出错才返回
-func (h *RequesterHeart) RunBeating(initRequest Protocol.TobeSendRequest) error {
-	request, option := initRequest, initRequest.Option.(RequestSendOption)
+func (h *RequesterHeart) RunBeating(initRequest Protocol.TobeSendRequest, initTimeout time.Duration, initRetryN uint64) error {
+	request, timeout, retryN := initRequest, initTimeout, initRetryN
 	run := true
 	for run {
-		response, err := h.requester.Send(request, option.GetTimeout(), option.GetRetryN())
+		response, err := h.requester.Send(request, timeout, retryN)
 		if err != nil {
 			return err
 		}
 		run = false
-		h.proto.Beat(response, func(req Protocol.TobeSendRequest) {
-			request, option = req, req.Option.(RequestSendOption)
+		h.proto.Beat(response, func(requestB Protocol.TobeSendRequest, timeoutB time.Duration, retryNB uint64) {
+			request, timeout, retryN = requestB, timeoutB, retryNB
 			run = true
 		})
 	}

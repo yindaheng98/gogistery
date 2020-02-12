@@ -28,17 +28,8 @@ func (r Request) String() string {
 }
 
 type RequestSendOption struct {
-	ID      string
-	Addr    string
-	Timeout time.Duration
-	RetryN  uint64
-}
-
-func (o RequestSendOption) GetTimeout() time.Duration {
-	return o.Timeout
-}
-func (o RequestSendOption) GetRetryN() uint64 {
-	return o.RetryN
+	ID   string
+	Addr string
 }
 
 func (o RequestSendOption) String() string {

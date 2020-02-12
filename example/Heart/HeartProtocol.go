@@ -3,21 +3,24 @@ package Heart
 import (
 	"fmt"
 	"gogistery/Protocol"
+	"time"
 )
 
 type RequesterHeartProtocol struct {
-	lastReq Protocol.TobeSendRequest
-	n       uint64
+	lastReq     Protocol.TobeSendRequest
+	lastTimeout time.Duration
+	lastRetryN  uint64
+	n           uint64
 }
 
-func (r *RequesterHeartProtocol) Beat(response Protocol.Response, beat func(Protocol.TobeSendRequest)) {
+func (r *RequesterHeartProtocol) Beat(response Protocol.Response, beat func(Protocol.TobeSendRequest, time.Duration, uint64)) {
 	s := "\n------RequesterHeartProtocol.Beat------>"
 	request := r.lastReq
 	s += fmt.Sprintf("No.%d beat was success with a response %s. ", r.n, response.String())
 	r.n++
 	if r.n < 10 {
 		fmt.Print(s + fmt.Sprintf("And the next beat is %s. ", request.String()))
-		beat(request)
+		beat(request, r.lastTimeout, r.lastRetryN)
 	} else {
 		fmt.Print(s + "And it's the end of beating.")
 	}

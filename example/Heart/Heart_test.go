@@ -11,13 +11,16 @@ func TestRequesterHeart(t *testing.T) {
 	requester := Heart.NewRequesterHeart(&RequesterHeartProtocol{
 		lastReq: Protocol.TobeSendRequest{
 			Request: Request{ID: "0"},
-			Option:  RequestSendOption{Timeout: 1e9, RetryN: 10, ID: "0", Addr: "0.0.0.0"}},
-		n: 0},
+			Option:  RequestSendOption{ID: "0", Addr: "0.0.0.0"}},
+		lastTimeout: 10e9,
+		lastRetryN:  10,
+		n:           0},
 		NewRequestBeatProtocol())
 	err := requester.RunBeating(
 		Protocol.TobeSendRequest{
 			Request: Request{ID: "1"},
-			Option:  RequestSendOption{Timeout: 1e10, RetryN: 10, ID: "1", Addr: "1.1.1.1"}},
+			Option:  RequestSendOption{ID: "1", Addr: "1.1.1.1"}},
+		10e9, 10,
 	)
 	t.Log(err)
 }
