@@ -9,7 +9,7 @@ import (
 )
 
 type registrantHandler struct {
-	RegistrantInfo
+	Protocol.RegistrantInfo
 	registry *Registry
 }
 
@@ -27,8 +27,13 @@ func (info registrantHandler) DeletedHandler() {
 	info.registry.Events.Disconnection.Emit(info.RegistrantInfo)
 }
 
+type RegistrantTimeoutProtocol interface {
+	TimeoutForNew(request Protocol.Request) time.Duration
+	TimeoutForUpdate(request Protocol.Request) time.Duration
+}
+
 type Registry struct {
-	info      Info                  //存储自身信息
+	info      Protocol.RegistryInfo //存储自身信息
 	responser *Heart.ResponserHeart //响应器/消息源
 
 	maxRegistrants int                    //最大连接数
@@ -39,7 +44,7 @@ type Registry struct {
 	Events *events
 }
 
-func New(info Info, maxRegistrants int, timeoutProto RegistrantTimeoutProtocol, sendProto Protocol.ResponseBeatProtocol) *Registry {
+func New(info Protocol.RegistryInfo, maxRegistrants int, timeoutProto RegistrantTimeoutProtocol, sendProto Protocol.ResponseProtocol) *Registry {
 	registry := &Registry{
 		info:      info,
 		responser: nil,
@@ -68,10 +73,10 @@ func (r *Registry) Stop() {
 }
 
 //获取当前所有活动连接
-func (r *Registry) GetConnections() []RegistrantInfo {
+func (r *Registry) GetConnections() []Protocol.RegistrantInfo {
 	r.timeoutMapMu.RLock()
 	defer r.timeoutMapMu.RUnlock()
-	infos := make([]RegistrantInfo, r.timeoutMap.Count())
+	infos := make([]Protocol.RegistrantInfo, r.timeoutMap.Count())
 	for i, registrant := range r.timeoutMap.GetAll() {
 		infos[i] = registrant.(registrantHandler).RegistrantInfo
 	}
@@ -79,10 +84,10 @@ func (r *Registry) GetConnections() []RegistrantInfo {
 }
 
 //进行一次注册操作，返回指定的下一次心跳的时间限制，如果接受连接则返回true，拒绝连接则返回false
-func (r *Registry) register(request Request) (time.Duration, bool) {
+func (r *Registry) register(request Protocol.Request) (time.Duration, bool) {
 	r.timeoutMapMu.Lock()
 	defer r.timeoutMapMu.Unlock()
-	if request.ToDisconnect() { //如果主动断开连接
+	if request.IsDisconnect() { //如果主动断开连接
 		r.timeoutMap.Delete(request.GetRegistrantID()) //则直接删除
 		return 0, false
 	}
@@ -97,7 +102,7 @@ func (r *Registry) register(request Request) (time.Duration, bool) {
 		timeout = r.timeoutProto.TimeoutForUpdate(request) //存在则获取更新的timeout
 	}
 	r.timeoutMap.UpdateInfo(
-		registrantHandler{request.(RegistrantInfo), r}, timeout) //否则更新连接
+		registrantHandler{request.(Protocol.RegistrantInfo), r}, timeout) //否则更新连接
 	if exists { //如果存在则说明是更新，触发更新事件
 		r.Events.UpdateConnection.Emit(request) //并触发更新事件
 	}

@@ -2,16 +2,6 @@ package Protocol
 
 import "fmt"
 
-//心跳数据请求基础类
-type Request interface {
-	String() string
-}
-
-//心跳数据响应基础类
-type Response interface {
-	String() string
-}
-
 //此类用于存储request端收到的response和错误信息
 type ReceivedResponse struct {
 	Response Response
@@ -22,16 +12,6 @@ type ReceivedResponse struct {
 type ReceivedRequest struct {
 	Request Request
 	Error   error
-}
-
-//自定义请求发送设置
-type RequestSendOption interface {
-	String() string
-}
-
-//自定义响应发送设置
-type ResponseSendOption interface {
-	String() string
 }
 
 //发送一个请求所需的信息
