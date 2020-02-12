@@ -10,21 +10,33 @@ type responserEvent struct {
 }
 
 type ResponserHeart struct {
-	proto         ResponserHeartProtocol
-	responser     *Responser
-	Event         *responserEvent
-	interruptChan chan bool
+	proto           ResponserHeartProtocol
+	responser       *responser
+	Event           *responserEvent
+	interruptChan   chan bool
+	interruptedChan chan bool
 }
 
-func NewResponserHeart(heartProto ResponserHeartProtocol, beatProto Protocol.ResponseBeatProtocol) *ResponserHeart {
+func NewResponserHeart(heartProto ResponserHeartProtocol, beatProto Protocol.ResponseProtocol) *ResponserHeart {
+	interruptChan := make(chan bool, 1)
+	interruptedChan := make(chan bool, 1)
+	close(interruptChan)
+	close(interruptedChan)
 	return &ResponserHeart{heartProto,
-		NewResponser(beatProto),
+		newResponser(beatProto),
 		&responserEvent{Emitter.NewErrorEmitter()},
-		make(chan bool, 1)}
+		interruptChan, interruptedChan}
 }
 
 //开始接收心跳，直到主动停止
 func (h *ResponserHeart) RunBeating() {
+	h.interruptChan = make(chan bool, 1)
+	h.interruptedChan = make(chan bool, 1)
+	defer func() {
+		h.interruptedChan <- true
+		close(h.interruptChan)
+		close(h.interruptedChan)
+	}()
 	for {
 		var request Protocol.Request
 		var err error
@@ -49,5 +61,7 @@ func (h *ResponserHeart) RunBeating() {
 }
 
 func (h *ResponserHeart) Stop() {
+	defer func() { recover() }()
 	h.interruptChan <- true
+	<-h.interruptedChan
 }

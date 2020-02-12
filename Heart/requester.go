@@ -11,17 +11,17 @@ type requesterEvents struct {
 	Retry *TobeSendRequestErrorEmitter
 }
 
-type Requester struct {
-	proto  Protocol.RequestBeatProtocol
+type requester struct {
+	proto  Protocol.RequestProtocol
 	Events *requesterEvents
 }
 
-func NewRequester(proto Protocol.RequestBeatProtocol) *Requester {
-	return &Requester{proto, &requesterEvents{newTobeSendRequestErrorEmitter()}}
+func newRequester(proto Protocol.RequestProtocol) *requester {
+	return &requester{proto, &requesterEvents{newTobeSendRequestErrorEmitter()}}
 }
 
 //多次重试发送并等待回复，直到成功或达到重试次数上限
-func (r *Requester) Send(option Protocol.TobeSendRequest, timeout time.Duration, retryN uint64) (Protocol.Response, error) {
+func (r *requester) Send(option Protocol.TobeSendRequest, timeout time.Duration, retryN uint64) (Protocol.Response, error) {
 	timeout = time.Duration(math.Abs(float64(timeout)))
 	outTime := time.Now().Add(timeout)                                           //何时过期
 	timeoutOnce := time.Duration(math.Floor(float64(timeout) / float64(retryN))) //单次发送的超时时间
@@ -42,7 +42,7 @@ func (r *Requester) Send(option Protocol.TobeSendRequest, timeout time.Duration,
 }
 
 //发送并等待回复，直到成功或超时
-func (r *Requester) SendOnce(option Protocol.TobeSendRequest, timeout time.Duration) (Protocol.Response, error) {
+func (r *requester) SendOnce(option Protocol.TobeSendRequest, timeout time.Duration) (Protocol.Response, error) {
 	responseChan := make(chan Protocol.ReceivedResponse, 1)
 	defer func() {
 		defer func() { recover() }()

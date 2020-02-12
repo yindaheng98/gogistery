@@ -5,16 +5,16 @@ import (
 	"gogistery/Protocol"
 )
 
-type Responser struct {
-	proto Protocol.ResponseBeatProtocol
+type responser struct {
+	proto Protocol.ResponseProtocol
 }
 
-func NewResponser(proto Protocol.ResponseBeatProtocol) *Responser {
-	return &Responser{proto}
+func newResponser(proto Protocol.ResponseProtocol) *responser {
+	return &responser{proto}
 }
 
 //此channel将返回接收到的Request和一个处理Response的函数
-func (r *Responser) Recv() (Protocol.Request, error, func(Protocol.TobeSendResponse)) {
+func (r *responser) Recv() (Protocol.Request, error, func(Protocol.TobeSendResponse)) {
 	requestProtoChan := make(chan Protocol.ReceivedRequest, 1)
 	defer func() {
 		defer func() { recover() }()

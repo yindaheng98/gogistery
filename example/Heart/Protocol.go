@@ -1,4 +1,4 @@
-package Heartbeat
+package Heart
 
 import (
 	"errors"
@@ -28,16 +28,27 @@ func (r Request) String() string {
 }
 
 type RequestSendOption struct {
-	ID   string
-	Addr string
+	ID      string
+	Addr    string
+	Timeout time.Duration
+	RetryN  uint64
 }
-type ResponseSendOption struct {
-	ID string
+
+func (o RequestSendOption) GetTimeout() time.Duration {
+	return o.Timeout
+}
+func (o RequestSendOption) GetRetryN() uint64 {
+	return o.RetryN
 }
 
 func (o RequestSendOption) String() string {
 	return fmt.Sprintf("RequestSendOption{id:%s,addr:%s}", o.ID, o.Addr)
 }
+
+type ResponseSendOption struct {
+	ID string
+}
+
 func (o ResponseSendOption) String() string {
 	return fmt.Sprintf("ResponseSendOption{id:%s}", o.ID)
 }
