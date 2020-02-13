@@ -2,6 +2,7 @@ package Registry
 
 import (
 	"github.com/yindaheng98/go-utility/Emitter"
+	"gogistery/Protocol"
 )
 
 //事件格式为base.RegistrantInfo
@@ -9,13 +10,13 @@ type RegistrantInfoEmitter struct {
 	*Emitter.Emitter
 }
 
-func (e *RegistrantInfoEmitter) AddHandler(handler func(info RegistrantInfo)) {
+func (e *RegistrantInfoEmitter) AddHandler(handler func(info Protocol.RegistrantInfo)) {
 	e.Emitter.AddHandler(func(i interface{}) {
-		handler(i.(RegistrantInfo))
+		handler(i.(Protocol.RegistrantInfo))
 	})
 }
 
-func (e *RegistrantInfoEmitter) Emit(info RegistrantInfo) {
+func (e *RegistrantInfoEmitter) Emit(info Protocol.RegistrantInfo) {
 	e.Emitter.Emit(info)
 }
 

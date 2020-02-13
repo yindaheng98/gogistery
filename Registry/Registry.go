@@ -33,7 +33,7 @@ type RegistrantTimeoutProtocol interface {
 }
 
 type Registry struct {
-	info      Protocol.RegistryInfo //存储自身信息
+	Info      Protocol.RegistryInfo //存储自身信息
 	responser *Heart.ResponserHeart //响应器/消息源
 
 	maxRegistrants int                    //最大连接数
@@ -44,9 +44,9 @@ type Registry struct {
 	Events *events
 }
 
-func New(info Protocol.RegistryInfo, maxRegistrants int, timeoutProto RegistrantTimeoutProtocol, sendProto Protocol.ResponseProtocol) *Registry {
+func New(Info Protocol.RegistryInfo, maxRegistrants int, timeoutProto RegistrantTimeoutProtocol, sendProto Protocol.ResponseProtocol) *Registry {
 	registry := &Registry{
-		info:      info,
+		Info:      Info,
 		responser: nil,
 
 		maxRegistrants: maxRegistrants,

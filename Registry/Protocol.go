@@ -11,11 +11,11 @@ type responserHeartProtocol struct {
 func (p *responserHeartProtocol) Beat(request Protocol.Request) Protocol.TobeSendResponse {
 	if timeout, ok := p.registry.register(request); ok {
 		return Protocol.TobeSendResponse{
-			Response: Protocol.Response{RegistryInfo: p.registry.info, Timeout: timeout, Reject: false}, //同意连接
+			Response: Protocol.Response{RegistryInfo: p.registry.Info, Timeout: timeout, Reject: false}, //同意连接
 			Option:   request.RegistrantInfo.GetResponseSendOption()}
 	} else {
 		return Protocol.TobeSendResponse{
-			Response: Protocol.Response{RegistryInfo: p.registry.info, Timeout: timeout, Reject: true}, //拒绝连接
+			Response: Protocol.Response{RegistryInfo: p.registry.Info, Timeout: timeout, Reject: true}, //拒绝连接
 			Option:   request.RegistrantInfo.GetResponseSendOption()}
 	}
 }
