@@ -99,7 +99,7 @@ func (r *Registry) register(request Protocol.Request) (time.Duration, uint64, bo
 		timeout, retryN = r.timeoutProto.TimeoutRetryNForUpdate(request) //存在则获取更新的timeout
 	}
 	r.timeoutMap.UpdateInfo(
-		registrantHandler{request.RegistrantInfo, r}, timeout) //否则更新连接
+		registrantHandler{request.RegistrantInfo, r}, time.Duration(retryN)*timeout) //否则更新连接
 	if exists { //如果存在则说明是更新，触发更新事件
 		r.Events.UpdateConnection.Emit(request.RegistrantInfo) //并触发更新事件
 	}
