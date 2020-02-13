@@ -32,7 +32,7 @@ func (r *responser) Recv() (Protocol.Request, error, func(Protocol.TobeSendRespo
 	}
 
 	if !ok { //如果通道已关闭
-		return nil, errors.New("request channel closed unexpectedly"), responseFunc //则返回错误
+		return Protocol.Request{}, errors.New("request channel closed unexpectedly"), responseFunc //则返回错误
 	}
 	return request.Request, request.Error, responseFunc //返回收到的Request
 }
