@@ -5,14 +5,14 @@ import (
 	"gogistery/Protocol"
 )
 
-type responserEvent struct {
+type responserEvents struct {
 	Error *Emitter.ErrorEmitter
 }
 
 type ResponserHeart struct {
 	proto           ResponserHeartProtocol
 	responser       *responser
-	Event           *responserEvent
+	Event           *responserEvents
 	interruptChan   chan bool
 	interruptedChan chan bool
 }
@@ -24,7 +24,7 @@ func NewResponserHeart(heartProto ResponserHeartProtocol, beatProto Protocol.Res
 	close(interruptedChan)
 	return &ResponserHeart{heartProto,
 		newResponser(beatProto),
-		&responserEvent{Emitter.NewErrorEmitter()},
+		&responserEvents{Emitter.NewErrorEmitter()},
 		interruptChan, interruptedChan}
 }
 
