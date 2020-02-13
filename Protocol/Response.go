@@ -14,6 +14,7 @@ type RequestSendOption interface {
 type RegistryInfo interface {
 	GetRegistryID() string
 	GetRequestSendOption() RequestSendOption //此服务端接收何种请求
+	GetCandidates() []RegistryInfo           //候选注册器信息列表
 	String() string
 }
 
@@ -21,9 +22,19 @@ type RegistryInfo interface {
 type Response struct {
 	RegistryInfo RegistryInfo
 	Timeout      time.Duration //下一次连接的时间限制
+	RetryN       uint64        //下一次连接的重试次数
 	Reject       bool          //是否拒绝连接
 }
 
+func (r Response) IsReject() bool {
+	return r.Reject
+}
+func (r Response) GetTimeout() time.Duration {
+	return r.Timeout
+}
+func (r Response) GetRetryN() uint64 {
+	return r.RetryN
+}
 func (r Response) String() string {
 	return fmt.Sprintf("Registry.Response{RegistryInfo:%s,Timeout:%d,Reject:%t}",
 		r.RegistryInfo.String(), r.Timeout, r.Reject)
