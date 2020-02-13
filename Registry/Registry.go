@@ -9,12 +9,12 @@ import (
 )
 
 type registrantHandler struct {
-	Protocol.RegistrantInfo
-	registry *Registry
+	RegistrantInfo Protocol.RegistrantInfo
+	registry       *Registry
 }
 
 func (info registrantHandler) GetID() string {
-	return info.GetRegistrantID()
+	return info.RegistrantInfo.GetRegistrantID()
 }
 
 func (info registrantHandler) NewAddedHandler() {
@@ -105,7 +105,7 @@ func (r *Registry) register(request Protocol.Request) (time.Duration, bool) {
 	r.timeoutMap.UpdateInfo(
 		registrantHandler{request.RegistrantInfo, r}, timeout) //否则更新连接
 	if exists { //如果存在则说明是更新，触发更新事件
-		r.Events.UpdateConnection.Emit(request) //并触发更新事件
+		r.Events.UpdateConnection.Emit(request.RegistrantInfo) //并触发更新事件
 	}
 	return timeout, true
 }
