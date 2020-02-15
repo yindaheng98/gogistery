@@ -115,7 +115,7 @@ const TESTADDRN = 10
 const TESTREQN = 30
 
 func TestChanNet(t *testing.T) {
-	chanNet := New(1e9, 30, "%02d.service.chanNet")
+	chanNet := New(1e9, 30, "%02d.service.chanNet", 100)
 	addrs := make([]string, TESTADDRN)
 	reqN := make([]int64, TESTADDRN)
 	for i := 0; i < TESTADDRN; i++ { //新建指定数量的chanPair服务器
