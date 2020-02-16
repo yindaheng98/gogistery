@@ -28,7 +28,7 @@ func (n *ChanNet) NewServer() string {
 }
 
 func (n *ChanNet) Request(addr string, request Protocol.Request) (Protocol.Response, error) {
-	s := "(ChanNet)->"
+	s := "(ChanNet.Request)->"
 	s += fmt.Sprintf("A request %s is transmitting to server in address '%s'. ", request.String(), addr)
 	defer func() { fmt.Print(s + "\n") }()
 	server, exists := n.servers[addr]
@@ -48,7 +48,7 @@ func (n *ChanNet) Request(addr string, request Protocol.Request) (Protocol.Respo
 }
 
 func (n *ChanNet) Response(addr string) (Protocol.Request, error, chan<- Protocol.Response) {
-	s := "(ChanNet)->"
+	s := "(ChanNet.Response)->"
 	server, exists := n.servers[addr]
 	if !exists {
 		return Protocol.Request{}, errors.New(fmt.Sprintf("addr '%s' not exists", addr)), nil
