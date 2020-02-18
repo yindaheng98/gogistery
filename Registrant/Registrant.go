@@ -51,6 +51,7 @@ func (r *Registrant) Run() {
 			}
 		}()
 	}
+	<-r.stoppedChan
 }
 
 func (r *Registrant) Stop() {
