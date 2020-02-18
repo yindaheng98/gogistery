@@ -66,7 +66,7 @@ func (r *Registrant) heartRoutine(h *heart) {
 	for {
 		errChan := make(chan error, 1)
 		go func() { //新开一个线程运行注册程序
-			initRequestSendOption, initTimeout, initRetryN := r.candProto.NewInitRequestSendOption()
+			initRequestSendOption, initTimeout, initRetryN := r.candProto.NewInitRequestSendOption(r.GetConnections())
 			err := h.Run(Protocol.TobeSendRequest{
 				Request: Protocol.Request{RegistrantInfo: r.Info, Disconnect: false},
 				Option:  initRequestSendOption}, initTimeout, initRetryN)

@@ -54,6 +54,7 @@ func (h *heart) Run(initRequest Protocol.TobeSendRequest, initTimeout time.Durat
 	h.stoppedChan = make(chan bool, 1)
 	h.heartProto.start()
 	err := h.requester.RunBeating(initRequest, initTimeout, initRetryN)
+	h.RegistryInfo = nil
 	h.stoppedChan <- true
 	close(h.stoppedChan)
 	return err
@@ -66,5 +67,5 @@ func (h *heart) Stop() {
 
 type CandidateRegistryProtocol interface {
 	StoreResponse(response Protocol.Response)
-	NewInitRequestSendOption() (Protocol.RequestSendOption, time.Duration, uint64)
+	NewInitRequestSendOption(excepts []Protocol.RegistryInfo) (Protocol.RequestSendOption, time.Duration, uint64)
 }
