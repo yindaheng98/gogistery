@@ -17,7 +17,6 @@ func NewRequesterHeart(heartProto RequesterHeartProtocol, beatProto Protocol.Req
 		NewConnection:    emitters.NewRegistryInfoEmitter(),
 		UpdateConnection: emitters.NewRegistryInfoEmitter(),
 		Retry:            emitters.NewTobeSendRequestErrorEmitter(),
-		Disconnection:    emitters.NewRegistryInfoEmitter(),
 	}
 	heart := &RequesterHeart{heartProto, nil, events}
 	heart.requester = newRequester(beatProto, heart)
@@ -27,11 +26,18 @@ func NewRequesterHeart(heartProto RequesterHeartProtocol, beatProto Protocol.Req
 //开始心跳，直到最后由协议主动停止心跳或出错才返回
 func (h *RequesterHeart) RunBeating(initRequest Protocol.TobeSendRequest, initTimeout time.Duration, initRetryN uint64) error {
 	request, timeout, retryN := initRequest, initTimeout, initRetryN
+	established := false
 	run := true
 	for run {
 		response, err := h.requester.Send(request, timeout, retryN)
 		if err != nil {
 			return err
+		}
+		if !established {
+			h.Events.NewConnection.Emit(response.RegistryInfo)
+			established = true
+		} else {
+			h.Events.UpdateConnection.Emit(response.RegistryInfo)
 		}
 		run = false
 		h.proto.Beat(response, func(requestB Protocol.TobeSendRequest, timeoutB time.Duration, retryNB uint64) {
