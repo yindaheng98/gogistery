@@ -2,7 +2,7 @@ package Registry
 
 import (
 	"github.com/yindaheng98/go-utility/TimeoutMap"
-	"gogistery/Heart"
+	"gogistery/Heart/ResponserHeart"
 	"gogistery/Protocol"
 	"sync"
 	"time"
@@ -28,8 +28,8 @@ func (info registrantHandler) DeletedHandler() {
 }
 
 type Registry struct {
-	Info      Protocol.RegistryInfo //存储自身信息
-	responser *Heart.ResponserHeart //响应器/消息源
+	Info      Protocol.RegistryInfo          //存储自身信息
+	responser *ResponserHeart.ResponserHeart //响应器/消息源
 
 	maxRegistrants int                    //最大连接数
 	timeoutMap     *TimeoutMap.TimeoutMap //超时计时表
@@ -51,7 +51,7 @@ func New(Info Protocol.RegistryInfo, maxRegistrants int, timeoutProto Registrant
 
 		Events: newEvents(),
 	}
-	registry.responser = Heart.NewResponserHeart(
+	registry.responser = ResponserHeart.NewResponserHeart(
 		&responserHeartProtocol{registry}, sendProto)
 	registry.Events.Error = registry.responser.Event.Error
 	return registry

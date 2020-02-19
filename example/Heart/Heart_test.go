@@ -2,7 +2,8 @@ package Heart
 
 import (
 	"fmt"
-	"gogistery/Heart"
+	"gogistery/Heart/RequesterHeart"
+	"gogistery/Heart/ResponserHeart"
 	"gogistery/Protocol"
 	ExampleProtocol "gogistery/example/Protocol"
 	"math/rand"
@@ -16,7 +17,7 @@ func ChanNetRequesterHeartTest(t *testing.T, RegistrantID string, initAddr strin
 		ID:     RegistrantID,
 		Option: ExampleProtocol.ResponseSendOption{Timestamp: time.Now()},
 	}
-	requester := Heart.NewRequesterHeart(
+	requester := RequesterHeart.NewRequesterHeart(
 		NewRequesterHeartProtocol(info, 10),
 		ExampleProtocol.NewChanNetRequestProtocol())
 	requester.Events.Retry.AddHandler(func(o Protocol.TobeSendRequest, err error) {
@@ -44,7 +45,7 @@ func ChanNetResponserHeartTest(t *testing.T, RegistryID string) string {
 		ID:         RegistryID,
 		Option:     ExampleProtocol.RequestSendOption{RequestAddr: proto.GetAddr(), Timestamp: time.Now()},
 		Candidates: []Protocol.RegistryInfo{}}
-	responser := Heart.NewResponserHeart(NewResponserHeartProtocol(info, 2e9, 5), proto)
+	responser := ResponserHeart.NewResponserHeart(NewResponserHeartProtocol(info, 2e9, 5), proto)
 	responser.Event.Error.AddHandler(func(err error) {
 		t.Log(s + fmt.Sprintf("An error occurred: %s", err.Error()))
 	})

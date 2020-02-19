@@ -1,19 +1,27 @@
-package Heart
+package RequesterHeart
 
 import (
 	"gogistery/Protocol"
+	"gogistery/util/emitters"
 	"time"
 )
 
 type RequesterHeart struct {
 	proto     RequesterHeartProtocol
 	requester *requester
-	Events    *requesterEvents
+	Events    *events
 }
 
 func NewRequesterHeart(heartProto RequesterHeartProtocol, beatProto Protocol.RequestProtocol) *RequesterHeart {
-	requester := newRequester(beatProto)
-	return &RequesterHeart{heartProto, requester, requester.Events}
+	events := &events{
+		NewConnection:    emitters.NewRegistryInfoEmitter(),
+		UpdateConnection: emitters.NewRegistryInfoEmitter(),
+		Retry:            emitters.NewTobeSendRequestErrorEmitter(),
+		Disconnection:    emitters.NewRegistryInfoEmitter(),
+	}
+	heart := &RequesterHeart{heartProto, nil, events}
+	heart.requester = newRequester(beatProto, heart)
+	return heart
 }
 
 //开始心跳，直到最后由协议主动停止心跳或出错才返回
