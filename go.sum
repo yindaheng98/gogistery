@@ -122,6 +122,10 @@ github.com/yindaheng98/go-utility v0.0.0-20200210092930-660387b1c66f h1:09OJUDvp
 github.com/yindaheng98/go-utility v0.0.0-20200210092930-660387b1c66f/go.mod h1:jAdOhT7aQmcfOW901gOCnOLvS4qKrO5Dz/McsDrsyl8=
 github.com/yindaheng98/go-utility v0.0.0-20200210095621-22835dd34cf4 h1:ENihVpr8NLnLcWFqSIw/LDd2swl0sIIO9jQYBXF//Yo=
 github.com/yindaheng98/go-utility v0.0.0-20200210095621-22835dd34cf4/go.mod h1:jAdOhT7aQmcfOW901gOCnOLvS4qKrO5Dz/McsDrsyl8=
+github.com/yindaheng98/go-utility v0.0.0-20200218070942-d068e61177eb h1:eTBvi24HswVIwN1YQOZY9saeCmpzt2+RoCNxOYUKjPc=
+github.com/yindaheng98/go-utility v0.0.0-20200218070942-d068e61177eb/go.mod h1:jAdOhT7aQmcfOW901gOCnOLvS4qKrO5Dz/McsDrsyl8=
+github.com/yindaheng98/go-utility v0.0.0-20200219121928-b94b17694621 h1:nysIQ+LNCwUZu/OEo/xzBjFvXUZC+ZBSfao3CEBQxGo=
+github.com/yindaheng98/go-utility v0.0.0-20200219121928-b94b17694621/go.mod h1:jAdOhT7aQmcfOW901gOCnOLvS4qKrO5Dz/McsDrsyl8=
 golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20191227163750-53104e6ec876 h1:sKJQZMuxjOAR/Uo2LBfU90onWEf1dF4C+0hPJCc9Mpc=

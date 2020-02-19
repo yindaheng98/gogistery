@@ -2,38 +2,23 @@ package Registry
 
 import (
 	"github.com/yindaheng98/go-utility/Emitter"
-	"gogistery/Protocol"
+	"gogistery/util/emitters"
 )
 
-//事件格式为base.RegistrantInfo
-type RegistrantInfoEmitter struct {
-	*Emitter.Emitter
-}
-
-func (e *RegistrantInfoEmitter) AddHandler(handler func(info Protocol.RegistrantInfo)) {
-	e.Emitter.AddHandler(func(i interface{}) {
-		handler(i.(Protocol.RegistrantInfo))
-	})
-}
-
-func (e *RegistrantInfoEmitter) Emit(info Protocol.RegistrantInfo) {
-	e.Emitter.Emit(info)
-}
-
 type events struct {
-	NewConnection     *RegistrantInfoEmitter
-	UpdateConnection  *RegistrantInfoEmitter
-	ConnectionTimeout *RegistrantInfoEmitter
-	Disconnection     *RegistrantInfoEmitter
+	NewConnection     *emitters.RegistrantInfoEmitter
+	UpdateConnection  *emitters.RegistrantInfoEmitter
+	ConnectionTimeout *emitters.RegistrantInfoEmitter
+	Disconnection     *emitters.RegistrantInfoEmitter
 	Error             *Emitter.ErrorEmitter
 }
 
 func newEvents() *events {
 	return &events{
-		&RegistrantInfoEmitter{Emitter.NewEmitter()},
-		&RegistrantInfoEmitter{Emitter.NewEmitter()},
-		&RegistrantInfoEmitter{Emitter.NewEmitter()},
-		&RegistrantInfoEmitter{Emitter.NewEmitter()},
+		emitters.NewRegistrantInfoEmitter(),
+		emitters.NewRegistrantInfoEmitter(),
+		emitters.NewRegistrantInfoEmitter(),
+		emitters.NewRegistrantInfoEmitter(),
 		Emitter.NewErrorEmitter()}
 }
 

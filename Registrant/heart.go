@@ -1,7 +1,7 @@
 package Registrant
 
 import (
-	"gogistery/Heart"
+	"gogistery/Heart/RequesterHeart"
 	"gogistery/Protocol"
 	"time"
 )
@@ -11,7 +11,7 @@ type heart struct {
 	RegistryInfo Protocol.RegistryInfo //此heart当前连接着哪个注册中心
 
 	heartProto *requesterHeartProtocol
-	requester  *Heart.RequesterHeart
+	requester  *RequesterHeart.RequesterHeart
 
 	stoppedChan chan bool
 }
@@ -31,7 +31,7 @@ func newHeart(registrant *Registrant, sendProto Protocol.RequestProtocol) *heart
 
 	heartProto := newRequesterHeartProtocol(h)
 	h.heartProto = heartProto
-	requester := Heart.NewRequesterHeart(heartProto, sendProto)
+	requester := RequesterHeart.NewRequesterHeart(heartProto, sendProto)
 	requester.Events.Retry = registrant.Events.Retry
 	h.requester = requester
 	return h
