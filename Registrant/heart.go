@@ -32,7 +32,19 @@ func newHeart(registrant *Registrant, sendProto Protocol.RequestProtocol) *heart
 	heartProto := newRequesterHeartProtocol(h)
 	h.heartProto = heartProto
 	requester := RequesterHeart.NewRequesterHeart(heartProto, sendProto)
-	requester.Events.Retry = registrant.Events.Retry
+	requester.Event.NewConnection.AddHandler(func(response Protocol.Response) {
+		if !response.IsReject() {
+			registrant.Events.NewConnection.Emit(response.RegistryInfo)
+		}
+	})
+	requester.Event.UpdateConnection.AddHandler(func(response Protocol.Response) {
+		if !response.IsReject() {
+			registrant.Events.UpdateConnection.Emit(response.RegistryInfo)
+		}
+	})
+	requester.Event.Disconnection = registrant.Events.Disconnection
+	requester.Event.Error = registrant.Events.Error
+	requester.Event.Retry = registrant.Events.Retry
 	h.requester = requester
 	return h
 }
