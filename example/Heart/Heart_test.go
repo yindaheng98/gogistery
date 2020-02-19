@@ -20,10 +20,22 @@ func ChanNetRequesterHeartTest(t *testing.T, RegistrantID string, initAddr strin
 	requester := RequesterHeart.NewRequesterHeart(
 		NewRequesterHeartProtocol(info, 10),
 		ExampleProtocol.NewChanNetRequestProtocol())
-	requester.Events.Retry.AddHandler(func(o Protocol.TobeSendRequest, err error) {
+	requester.Event.NewConnection.AddHandler(func(info Protocol.RegistryInfo) {
+		t.Log(s + fmt.Sprintf("New Connection-->%s", info.String()))
+	})
+	requester.Event.UpdateConnection.AddHandler(func(info Protocol.RegistryInfo) {
+		t.Log(s + fmt.Sprintf("Update Connection-->%s", info.String()))
+	})
+	requester.Event.Disconnection.AddHandler(func(request Protocol.TobeSendRequest, err error) {
+		t.Log(s + fmt.Sprintf("Disonnection-->%s,%s", err, request.String()))
+	})
+	requester.Event.Retry.AddHandler(func(o Protocol.TobeSendRequest, err error) {
 		t.Log(s + fmt.Sprintf("A request %s retryed because %s", o.String(), err.Error()))
 	})
-	requester.Events.Retry.Enable()
+	requester.Event.Error.AddHandler(func(err error) {
+		t.Log(s + fmt.Sprintf("An error occurred: %s", err.Error()))
+	})
+	requester.Event.EnableAll()
 	go func() {
 		t.Log(s + fmt.Sprintf("RequesterHeart started with info %s.", info.String()))
 		err := requester.RunBeating(Protocol.TobeSendRequest{
