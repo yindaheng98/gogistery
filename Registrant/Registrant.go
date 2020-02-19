@@ -17,7 +17,7 @@ type Registrant struct {
 	Events    *events
 }
 
-func New(Info Protocol.RegistrantInfo, regitryN uint64, candProto CandidateRegistryProtocol, sendProto Protocol.RequestProtocol) *Registrant {
+func New(Info Protocol.RegistrantInfo, regitryN uint, candProto CandidateRegistryProtocol, sendProto Protocol.RequestProtocol) *Registrant {
 	stopChan := make(chan bool, 1)
 	stoppedChan := make(chan bool, 1)
 	close(stopChan)
@@ -33,7 +33,7 @@ func New(Info Protocol.RegistrantInfo, regitryN uint64, candProto CandidateRegis
 		candProto: candProto,
 		Events:    newEvents(),
 	}
-	for i := uint64(0); i < regitryN; i++ {
+	for i := uint(0); i < regitryN; i++ {
 		registrant.hearts[i] = newHeart(registrant, sendProto)
 	}
 	return registrant
@@ -42,9 +42,11 @@ func New(Info Protocol.RegistrantInfo, regitryN uint64, candProto CandidateRegis
 func (r *Registrant) Run() {
 	r.stopChan = make(chan bool, 1)
 	r.stoppedChan = make(chan bool, 1)
-	for _, heart := range r.hearts {
+	connChan := make(chan []Protocol.RegistryInfo, 1)
+	connChan <- make([]Protocol.RegistryInfo, len(r.hearts))
+	for i, heart := range r.hearts {
 		go func() {
-			r.heartRoutine(heart)
+			r.heartRoutine(heart, i, connChan)
 			if atomic.LoadInt64(&r.runningN) <= 0 {
 				r.stoppedChan <- true
 				close(r.stoppedChan)
@@ -60,17 +62,31 @@ func (r *Registrant) Stop() {
 	<-r.stoppedChan
 }
 
-func (r *Registrant) heartRoutine(h *heart) {
+func (r *Registrant) heartRoutine(h *heart, i int, connChan chan []Protocol.RegistryInfo) {
 	atomic.AddInt64(&r.runningN, 1)
 	defer atomic.AddInt64(&r.runningN, -1)
 	for {
 		errChan := make(chan error, 1)
 		go func() { //新开一个线程运行注册程序
-			initRequestSendOption, initTimeout, initRetryN := r.candProto.NewInitRequestSendOption(r.GetConnections())
+			var connections []Protocol.RegistryInfo
+			connections = <-connChan           //从队列中取出已有连接列表
+			var except []Protocol.RegistryInfo //去除空项
+			for _, conn := range connections {
+				if conn != nil {
+					except = append(except, conn)
+				}
+			}
+			initRegistryInfo, initTimeout, initRetryN := r.candProto.GetCandidate(except)
+			//去除空项以此获取新连接
+			connections[i] = initRegistryInfo //将新连接加入已有连接列表
+			connChan <- connections           //已有连接列表放回队列
 			err := h.Run(Protocol.TobeSendRequest{
 				Request: Protocol.Request{RegistrantInfo: r.Info, Disconnect: false},
-				Option:  initRequestSendOption}, initTimeout, initRetryN)
-			errChan <- err //掉线时发送掉线信息
+				Option:  initRegistryInfo.GetRequestSendOption()}, initTimeout, initRetryN)
+			connections = <-connChan //从队列中取出已有连接列表
+			connections[i] = nil     //将对应位置空
+			connChan <- connections  //已有连接列表放回队列
+			errChan <- err           //掉线时发送掉线信息
 		}()
 		select {
 		case err := <-errChan: //若收到掉线信息

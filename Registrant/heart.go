@@ -38,7 +38,7 @@ func newHeart(registrant *Registrant, sendProto Protocol.RequestProtocol) *heart
 }
 
 func (h *heart) beatResponse(response Protocol.Response) Protocol.TobeSendRequest {
-	h.registrant.candProto.StoreResponse(response)
+	h.registrant.candProto.StoreCandidates(response)
 	if response.IsReject() {
 		h.RegistryInfo = nil
 	} else {
@@ -66,6 +66,9 @@ func (h *heart) Stop() {
 }
 
 type CandidateRegistryProtocol interface {
-	StoreResponse(response Protocol.Response)
-	NewInitRequestSendOption(excepts []Protocol.RegistryInfo) (Protocol.RequestSendOption, time.Duration, uint64)
+	//存入一组候选注册中心
+	StoreCandidates(response Protocol.Response)
+
+	//选出一个用于初始化的注册中心信息，并且不能是except中列出的这几个
+	GetCandidate(except []Protocol.RegistryInfo) (Protocol.RegistryInfo, time.Duration, uint64)
 }
