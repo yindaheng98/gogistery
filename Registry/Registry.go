@@ -20,7 +20,10 @@ func (info registrantHandler) GetID() string {
 func (info registrantHandler) NewAddedHandler() {
 	info.registry.Events.NewConnection.Emit(info.RegistrantInfo)
 }
-func (info registrantHandler) TimeoutHandler() {
+func (info registrantHandler) UpdatedHandler() {
+	info.registry.Events.UpdateConnection.Emit(info.RegistrantInfo)
+}
+func (info registrantHandler) TimeoutedHandler() {
 	info.registry.Events.ConnectionTimeout.Emit(info.RegistrantInfo)
 }
 func (info registrantHandler) DeletedHandler() {
