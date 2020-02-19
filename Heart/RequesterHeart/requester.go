@@ -22,7 +22,7 @@ func (r *requester) Send(option Protocol.TobeSendRequest, timeout time.Duration,
 		if err == nil {
 			return response, nil
 		}
-		r.heart.Events.Retry.Emit(option, err)
+		r.heart.Event.Retry.Emit(option, err)
 	}
 	return Protocol.Response{}, errors.New("connection failed")
 }
