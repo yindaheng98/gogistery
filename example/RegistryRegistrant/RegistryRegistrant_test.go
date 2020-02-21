@@ -2,16 +2,16 @@ package RegistryRegistrant
 
 import (
 	"fmt"
-	"gogistery/Protocol"
 	"gogistery/Registrant"
 	"gogistery/Registry"
-	ExampleProtocol "gogistery/example/Protocol"
+	ExampleProtocol "gogistery/example/protocol"
+	"gogistery/protocol"
 	"testing"
 	"time"
 )
 
 var RegistryInfos = make(map[string]ExampleProtocol.RegistryInfo)
-var LastRegistryInfo Protocol.RegistryInfo
+var LastRegistryInfo protocol.RegistryInfo
 
 func RegistryTest(t *testing.T) {
 	proto := ExampleProtocol.NewChanNetResponseProtocol()
@@ -28,14 +28,12 @@ func RegistryTest(t *testing.T) {
 	}
 	RegistryInfos[proto.GetAddr()] = info
 	LastRegistryInfo = info
-	registry := Registry.New(info, 5,
-		NewRegistrantControlProtocol(1e9, 3e9, 2, 3),
-		proto)
-	registry.Events.NewConnection.AddHandler(func(i Protocol.RegistrantInfo) {
+	registry := Registry.New(info, 5, NewTimeoutController(1e9, 3e9, 2), proto)
+	registry.Events.NewConnection.AddHandler(func(i protocol.RegistrantInfo) {
 		t.Log(fmt.Sprintf("RegistryTest:%s--NewConnection--%s", info.GetRegistryID(), i.GetRegistrantID()))
 	})
 	registry.Events.NewConnection.Enable()
-	registry.Events.Disconnection.AddHandler(func(i Protocol.RegistrantInfo) {
+	registry.Events.Disconnection.AddHandler(func(i protocol.RegistrantInfo) {
 		t.Log(fmt.Sprintf("RegistryTest:%s--Disconnection--%s", info.GetRegistryID(), i.GetRegistrantID()))
 	})
 	registry.Events.Disconnection.Enable()
@@ -56,13 +54,13 @@ func RegistrantTest(t *testing.T, i int) {
 		Option: ExampleProtocol.ResponseSendOption{},
 	}
 	registrant := Registrant.New(info, 5,
-		NewCandidateRegistryProtocol(LastRegistryInfo, SERVERN, 1e9, 3),
-		proto)
-	registrant.Events.NewConnection.AddHandler(func(i Protocol.RegistryInfo) {
+		NewRegistryCandidateList(LastRegistryInfo, SERVERN, 1e9, 3),
+		RetryNController{}, proto)
+	registrant.Events.NewConnection.AddHandler(func(i protocol.RegistryInfo) {
 		t.Log(fmt.Sprintf("RegistrantTest:%s--NewConnection--%s", info.GetRegistrantID(), i.GetRegistryID()))
 	})
 	registrant.Events.NewConnection.Enable()
-	registrant.Events.Disconnection.AddHandler(func(request Protocol.TobeSendRequest, err error) {
+	registrant.Events.Disconnection.AddHandler(func(request protocol.TobeSendRequest, err error) {
 		t.Log(fmt.Sprintf("RegistrantTest:%s--Disconnection--%s. error:%s",
 			info.GetRegistrantID(), request.Option.String(), err))
 	})

@@ -2,7 +2,7 @@ package emitters
 
 import (
 	"github.com/yindaheng98/go-utility/Emitter"
-	"gogistery/Protocol"
+	"gogistery/protocol"
 )
 
 type RegistrantInfoEmitter struct {
@@ -13,12 +13,12 @@ func NewRegistrantInfoEmitter() *RegistrantInfoEmitter {
 	return &RegistrantInfoEmitter{Emitter.NewEmitter()}
 }
 
-func (e *RegistrantInfoEmitter) AddHandler(handler func(info Protocol.RegistrantInfo)) {
+func (e *RegistrantInfoEmitter) AddHandler(handler func(info protocol.RegistrantInfo)) {
 	e.Emitter.AddHandler(func(i interface{}) {
-		handler(i.(Protocol.RegistrantInfo))
+		handler(i.(protocol.RegistrantInfo))
 	})
 }
 
-func (e *RegistrantInfoEmitter) Emit(info Protocol.RegistrantInfo) {
+func (e *RegistrantInfoEmitter) Emit(info protocol.RegistrantInfo) {
 	e.Emitter.Emit(info)
 }
