@@ -1,8 +1,8 @@
-package Protocol
+package protocol
 
 import (
 	"fmt"
-	"gogistery/Protocol"
+	"gogistery/protocol"
 	"time"
 )
 
@@ -22,7 +22,7 @@ type RegistrantInfo struct {
 func (info RegistrantInfo) GetRegistrantID() string {
 	return info.ID
 }
-func (info RegistrantInfo) GetResponseSendOption() Protocol.ResponseSendOption {
+func (info RegistrantInfo) GetResponseSendOption() protocol.ResponseSendOption {
 	return info.Option
 }
 func (info RegistrantInfo) String() string {
@@ -41,16 +41,16 @@ func (o RequestSendOption) String() string {
 type RegistryInfo struct {
 	ID         string
 	Option     RequestSendOption
-	Candidates []Protocol.RegistryInfo
+	Candidates []protocol.RegistryInfo
 }
 
 func (info RegistryInfo) GetRegistryID() string {
 	return info.ID
 }
-func (info RegistryInfo) GetRequestSendOption() Protocol.RequestSendOption {
+func (info RegistryInfo) GetRequestSendOption() protocol.RequestSendOption {
 	return info.Option
 }
-func (info RegistryInfo) GetCandidates() []Protocol.RegistryInfo {
+func (info RegistryInfo) GetCandidates() []protocol.RegistryInfo {
 	return info.Candidates
 }
 func (info RegistryInfo) String() string {

@@ -1,8 +1,8 @@
-package Protocol
+package protocol
 
 import (
 	"fmt"
-	"gogistery/Protocol"
+	"gogistery/protocol"
 	"math/rand"
 	"testing"
 	"time"
@@ -11,10 +11,10 @@ import (
 func RequestTest(t *testing.T, proto ChanNetRequestProtocol, RegistrantID string, addr string) {
 	s := "(RequestTest)->"
 	defer func() { t.Log(s) }()
-	requestChan := make(chan Protocol.TobeSendRequest, 1)
-	responseChan := make(chan Protocol.ReceivedResponse, 1)
-	req := Protocol.TobeSendRequest{
-		Request: Protocol.Request{
+	requestChan := make(chan protocol.TobeSendRequest, 1)
+	responseChan := make(chan protocol.ReceivedResponse, 1)
+	req := protocol.TobeSendRequest{
+		Request: protocol.Request{
 			RegistrantInfo: RegistrantInfo{ID: RegistrantID, Option: ResponseSendOption{Timestamp: time.Now()}},
 			Disconnect:     false,
 		},
@@ -39,8 +39,8 @@ func RequestTest(t *testing.T, proto ChanNetRequestProtocol, RegistrantID string
 func ResponseTest(t *testing.T, proto ChanNetResponseProtocol) {
 	s := "(ResponseTest)->"
 	defer func() { t.Log(s) }()
-	requestChan := make(chan Protocol.ReceivedRequest, 1)
-	responseChan := make(chan Protocol.TobeSendResponse, 1)
+	requestChan := make(chan protocol.ReceivedRequest, 1)
+	responseChan := make(chan protocol.TobeSendResponse, 1)
 	go proto.Response(requestChan, responseChan)
 	req := <-requestChan
 	s += fmt.Sprintf("A request arrived at '%s'. ", proto.GetAddr())
@@ -50,15 +50,15 @@ func ResponseTest(t *testing.T, proto ChanNetResponseProtocol) {
 		return
 	}
 	s += fmt.Sprintf("It is %s. ", request.String())
-	response := Protocol.TobeSendResponse{
-		Response: Protocol.Response{
+	response := protocol.TobeSendResponse{
+		Response: protocol.Response{
 			RegistryInfo: RegistryInfo{
 				ID: proto.GetAddr(),
 				Option: RequestSendOption{
 					RequestAddr: proto.GetAddr(),
 					Timestamp:   time.Now(),
 				},
-				Candidates: []Protocol.RegistryInfo{},
+				Candidates: []protocol.RegistryInfo{},
 			},
 			Timeout: 0,
 			RetryN:  0,

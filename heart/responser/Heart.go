@@ -1,7 +1,7 @@
 package responser
 
 import (
-	"gogistery/Protocol"
+	"gogistery/protocol"
 )
 
 type Heart struct {
@@ -12,7 +12,7 @@ type Heart struct {
 	interruptedChan chan bool
 }
 
-func NewHeart(beater HeartBeater, ResponseProto Protocol.ResponseProtocol) *Heart {
+func NewHeart(beater HeartBeater, ResponseProto protocol.ResponseProtocol) *Heart {
 	interruptChan := make(chan bool, 1)
 	interruptedChan := make(chan bool, 1)
 	close(interruptChan)
@@ -33,9 +33,9 @@ func (h *Heart) RunBeating() {
 		close(h.interruptedChan)
 	}()
 	for {
-		var request Protocol.Request
+		var request protocol.Request
 		var err error
-		var responseFunc func(Protocol.TobeSendResponse)
+		var responseFunc func(protocol.TobeSendResponse)
 		responseChan := make(chan bool, 1)
 		go func() {
 			request, err, responseFunc = h.responser.Recv()

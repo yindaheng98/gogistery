@@ -1,19 +1,19 @@
 package requester
 
 import (
-	"gogistery/Protocol"
+	"gogistery/protocol"
 )
 
 type handlers struct {
-	NewConnectionHandler    func(Protocol.Response)
-	UpdateConnectionHandler func(Protocol.Response)
-	DisconnectionHandler    func(Protocol.TobeSendRequest, error)
-	RetryHandler            func(Protocol.TobeSendRequest, error)
+	NewConnectionHandler    func(protocol.Response)
+	UpdateConnectionHandler func(protocol.Response)
+	DisconnectionHandler    func(protocol.TobeSendRequest, error)
+	RetryHandler            func(protocol.TobeSendRequest, error)
 }
 
 func newEvents() *handlers {
-	return &handlers{func(Protocol.Response) {},
-		func(Protocol.Response) {},
-		func(Protocol.TobeSendRequest, error) {},
-		func(Protocol.TobeSendRequest, error) {}}
+	return &handlers{func(protocol.Response) {},
+		func(protocol.Response) {},
+		func(protocol.TobeSendRequest, error) {},
+		func(protocol.TobeSendRequest, error) {}}
 }

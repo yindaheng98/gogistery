@@ -2,7 +2,7 @@ package ChanNet
 
 import (
 	"fmt"
-	"gogistery/Protocol"
+	"gogistery/protocol"
 	"math/rand"
 	"testing"
 	"time"
@@ -25,7 +25,7 @@ type TestRegistrantInfo struct {
 func (info TestRegistrantInfo) GetRegistrantID() string {
 	return info.ID
 }
-func (info TestRegistrantInfo) GetResponseSendOption() Protocol.ResponseSendOption {
+func (info TestRegistrantInfo) GetResponseSendOption() protocol.ResponseSendOption {
 	return info.Option
 }
 func (info TestRegistrantInfo) String() string {
@@ -44,16 +44,16 @@ func (o TestRequestSendOption) String() string {
 type TestRegistryInfo struct {
 	ID         string
 	Option     TestRequestSendOption
-	Candidates []Protocol.RegistryInfo
+	Candidates []protocol.RegistryInfo
 }
 
 func (info TestRegistryInfo) GetRegistryID() string {
 	return info.ID
 }
-func (info TestRegistryInfo) GetRequestSendOption() Protocol.RequestSendOption {
+func (info TestRegistryInfo) GetRequestSendOption() protocol.RequestSendOption {
 	return info.Option
 }
-func (info TestRegistryInfo) GetCandidates() []Protocol.RegistryInfo {
+func (info TestRegistryInfo) GetCandidates() []protocol.RegistryInfo {
 	return info.Candidates
 }
 func (info TestRegistryInfo) String() string {
@@ -66,7 +66,7 @@ func (info TestRegistryInfo) String() string {
 }
 
 func RequestTest(t *testing.T, addr string, chanNet *ChanNet, i int) {
-	request := Protocol.Request{
+	request := protocol.Request{
 		RegistrantInfo: TestRegistrantInfo{
 			ID: fmt.Sprintf("Registrant_%s", addr),
 			Option: TestResponseSendOption{
@@ -94,7 +94,7 @@ func ResponseTest(t *testing.T, addr string, chanNet *ChanNet) {
 		return
 	}
 	s += fmt.Sprintf("Request arrived at '%s': %s, ", addr, request.String())
-	response := Protocol.Response{
+	response := protocol.Response{
 		RegistryInfo: TestRegistryInfo{
 			ID: fmt.Sprintf("Registry_%s", addr),
 			Option: TestRequestSendOption{

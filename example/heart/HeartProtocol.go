@@ -1,9 +1,9 @@
-package Heart
+package heart
 
 import (
 	"fmt"
-	"gogistery/Protocol"
-	ExampleProtocol "gogistery/example/Protocol"
+	ExampleProtocol "gogistery/example/protocol"
+	"gogistery/protocol"
 	"time"
 )
 
@@ -15,7 +15,7 @@ type RequesterHeartBeater struct {
 func NewRequesterHeartBeater(info ExampleProtocol.RegistrantInfo, BeatN int64) *RequesterHeartBeater {
 	return &RequesterHeartBeater{Info: info, n: BeatN}
 }
-func (r *RequesterHeartBeater) Beat(response Protocol.Response, beat func(Protocol.TobeSendRequest, time.Duration, uint64)) {
+func (r *RequesterHeartBeater) Beat(response protocol.Response, beat func(protocol.TobeSendRequest, time.Duration, uint64)) {
 	s := "------RequesterHeartProtocol.Beat------>"
 	defer func() { fmt.Print(s + "\n") }()
 	s += fmt.Sprintf("No.%d beat was success with a response %s. ", r.n, response.String())
@@ -23,8 +23,8 @@ func (r *RequesterHeartBeater) Beat(response Protocol.Response, beat func(Protoc
 		s += "And it's the end of beating."
 		return
 	}
-	request := Protocol.TobeSendRequest{
-		Request: Protocol.Request{
+	request := protocol.TobeSendRequest{
+		Request: protocol.Request{
 			RegistrantInfo: r.Info,
 			Disconnect:     false,
 		},
@@ -45,13 +45,13 @@ func NewResponserHeartBeater(info ExampleProtocol.RegistryInfo, Timeout time.Dur
 	return &ResponserHeartBeater{Info: info, Timeout: Timeout, RetryN: RetryN, n: 0}
 }
 
-func (r *ResponserHeartBeater) Beat(request Protocol.Request) Protocol.TobeSendResponse {
+func (r *ResponserHeartBeater) Beat(request protocol.Request) protocol.TobeSendResponse {
 	s := "------ResponserHeartProtocol.Beat------>"
 	defer func() { fmt.Print(s + "\n") }()
 	s += fmt.Sprintf("No.%d request %s arrived. ", r.n, request.String())
 	r.n++
-	response := Protocol.TobeSendResponse{
-		Response: Protocol.Response{
+	response := protocol.TobeSendResponse{
+		Response: protocol.Response{
 			RegistryInfo: r.Info,
 			Timeout:      r.Timeout,
 			RetryN:       r.RetryN,

@@ -1,8 +1,8 @@
-package Protocol
+package protocol
 
 import (
-	"gogistery/Protocol"
-	ChanNet2 "gogistery/example/Protocol/ChanNet"
+	ChanNet2 "gogistery/example/protocol/ChanNet"
+	"gogistery/protocol"
 )
 
 var ChanNet = ChanNet2.New(1e9, 30, "%02d.service.chanNet", 100)
@@ -14,11 +14,11 @@ func NewChanNetRequestProtocol() ChanNetRequestProtocol {
 	return ChanNetRequestProtocol{}
 }
 
-func (proto ChanNetRequestProtocol) Request(requestChan <-chan Protocol.TobeSendRequest, responseChan chan<- Protocol.ReceivedResponse) {
+func (proto ChanNetRequestProtocol) Request(requestChan <-chan protocol.TobeSendRequest, responseChan chan<- protocol.ReceivedResponse) {
 	r := <-requestChan
 	request, option := r.Request, r.Option.(RequestSendOption)
 	response, err := ChanNet.Request(option.RequestAddr, request)
-	responseChan <- Protocol.ReceivedResponse{Response: response, Error: err}
+	responseChan <- protocol.ReceivedResponse{Response: response, Error: err}
 }
 
 type ChanNetResponseProtocol struct {
@@ -31,9 +31,9 @@ func NewChanNetResponseProtocol() ChanNetResponseProtocol {
 func (proto ChanNetResponseProtocol) GetAddr() string {
 	return proto.addr
 }
-func (proto ChanNetResponseProtocol) Response(requestChan chan<- Protocol.ReceivedRequest, responseChan <-chan Protocol.TobeSendResponse) {
+func (proto ChanNetResponseProtocol) Response(requestChan chan<- protocol.ReceivedRequest, responseChan <-chan protocol.TobeSendResponse) {
 	request, err, respChan := ChanNet.Response(proto.addr)
-	requestChan <- Protocol.ReceivedRequest{Request: request, Error: err}
+	requestChan <- protocol.ReceivedRequest{Request: request, Error: err}
 	response, ok := <-responseChan
 	if ok {
 		respChan <- response.Response

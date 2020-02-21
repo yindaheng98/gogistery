@@ -1,7 +1,7 @@
 package requester
 
 import (
-	"gogistery/Protocol"
+	"gogistery/protocol"
 	"time"
 )
 
@@ -11,17 +11,17 @@ type Heart struct {
 	Handlers  *handlers
 }
 
-func NewHeart(beater HeartBeater, RequestProto Protocol.RequestProtocol) *Heart {
+func NewHeart(beater HeartBeater, RequestProto protocol.RequestProtocol) *Heart {
 	heart := &Heart{beater, nil, newEvents()}
 	heart.requester = newRequester(RequestProto)
-	heart.requester.RetryHandler = func(request Protocol.TobeSendRequest, err error) {
+	heart.requester.RetryHandler = func(request protocol.TobeSendRequest, err error) {
 		heart.Handlers.RetryHandler(request, err)
 	}
 	return heart
 }
 
 //开始心跳，直到最后由协议主动停止心跳或出错才返回
-func (h *Heart) RunBeating(initRequest Protocol.TobeSendRequest, initTimeout time.Duration, initRetryN uint64) error {
+func (h *Heart) RunBeating(initRequest protocol.TobeSendRequest, initTimeout time.Duration, initRetryN uint64) error {
 	request, timeout, retryN := initRequest, initTimeout, initRetryN
 	var err error = nil
 	established := false
@@ -40,7 +40,7 @@ func (h *Heart) RunBeating(initRequest Protocol.TobeSendRequest, initTimeout tim
 			h.Handlers.UpdateConnectionHandler(response)
 		}
 		run = false
-		h.beater.Beat(response, func(requestB Protocol.TobeSendRequest, timeoutB time.Duration, retryNB uint64) {
+		h.beater.Beat(response, func(requestB protocol.TobeSendRequest, timeoutB time.Duration, retryNB uint64) {
 			request, timeout, retryN = requestB, timeoutB, retryNB
 			run = true
 		})
