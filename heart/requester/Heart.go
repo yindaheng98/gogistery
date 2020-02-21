@@ -22,7 +22,7 @@ func NewHeart(beater HeartBeater, RequestProto protocol.RequestProtocol) *Heart 
 
 //开始心跳，直到最后由协议主动停止心跳或出错才返回
 func (h *Heart) RunBeating(initRequest protocol.TobeSendRequest, initTimeout time.Duration, initRetryN uint64) error {
-	request, timeout, retryN := initRequest, initTimeout, initRetryN
+	request, Timeout, RetryN := initRequest, initTimeout, initRetryN
 	var err error = nil
 	established := false
 	defer func() {
@@ -32,7 +32,8 @@ func (h *Heart) RunBeating(initRequest protocol.TobeSendRequest, initTimeout tim
 	}()
 	run := true
 	for run {
-		response, err := h.requester.Send(request, timeout, retryN)
+		retryN := RetryN
+		response, err := h.requester.Send(request, Timeout, &retryN)
 		if err != nil {
 			return err
 		}
@@ -40,10 +41,11 @@ func (h *Heart) RunBeating(initRequest protocol.TobeSendRequest, initTimeout tim
 			h.Handlers.UpdateConnectionHandler(response)
 		}
 		run = false
-		h.beater.Beat(response, func(requestB protocol.TobeSendRequest, timeoutB time.Duration, retryNB uint64) {
-			request, timeout, retryN = requestB, timeoutB, retryNB
-			run = true
-		})
+		h.beater.Beat(response, RetryN-retryN,
+			func(requestB protocol.TobeSendRequest, timeoutB time.Duration, retryNB uint64) {
+				request, Timeout, RetryN = requestB, timeoutB, retryNB
+				run = true
+			})
 		if run { //只有上级协议判定可以继续进行接下来的连接才能视为连接达成
 			if !established { //此时可以触发新建连接事件
 				h.Handlers.NewConnectionHandler(response)

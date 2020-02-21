@@ -16,8 +16,8 @@ func newRequester(proto protocol.RequestProtocol) *requester {
 }
 
 //多次重试发送并等待回复，直到成功或达到重试次数上限
-func (r *requester) Send(option protocol.TobeSendRequest, timeout time.Duration, retryN uint64) (protocol.Response, error) {
-	for ; retryN > 0; retryN-- {
+func (r *requester) Send(option protocol.TobeSendRequest, timeout time.Duration, retryN *uint64) (protocol.Response, error) {
+	for ; *retryN > 0; *retryN-- {
 		response, err := r.SendOnce(option, timeout)
 		if err == nil {
 			return response, nil

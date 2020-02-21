@@ -53,7 +53,7 @@ func ChanNetResponserHeartTest(t *testing.T, RegistryID string) string {
 		ID:         RegistryID,
 		Option:     ExampleProtocol.RequestSendOption{RequestAddr: proto.GetAddr(), Timestamp: time.Now()},
 		Candidates: []protocol.RegistryInfo{}}
-	heart := responser.NewHeart(NewResponserHeartBeater(info, 2e9, 5), proto)
+	heart := responser.NewHeart(NewResponserHeartBeater(info, 2e9), proto)
 	heart.ErrorHandler = func(err error) {
 		t.Log(s + fmt.Sprintf("An error occurred: %s", err.Error()))
 	}

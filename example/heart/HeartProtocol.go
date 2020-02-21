@@ -15,7 +15,7 @@ type RequesterHeartBeater struct {
 func NewRequesterHeartBeater(info ExampleProtocol.RegistrantInfo, BeatN int64) *RequesterHeartBeater {
 	return &RequesterHeartBeater{Info: info, n: BeatN}
 }
-func (r *RequesterHeartBeater) Beat(response protocol.Response, beat func(protocol.TobeSendRequest, time.Duration, uint64)) {
+func (r *RequesterHeartBeater) Beat(response protocol.Response, retryN uint64, beat func(protocol.TobeSendRequest, time.Duration, uint64)) {
 	s := "------RequesterHeartProtocol.Beat------>"
 	defer func() { fmt.Print(s + "\n") }()
 	s += fmt.Sprintf("No.%d beat was success with a response %s. ", r.n, response.String())
@@ -31,18 +31,17 @@ func (r *RequesterHeartBeater) Beat(response protocol.Response, beat func(protoc
 		Option: response.RegistryInfo.GetRequestSendOption(),
 	}
 	s += fmt.Sprintf("And the next beat is %s. ", request.String())
-	beat(request, response.Timeout, response.RetryN)
+	beat(request, response.Timeout, retryN*2)
 }
 
 type ResponserHeartBeater struct {
 	Info    ExampleProtocol.RegistryInfo
 	Timeout time.Duration
-	RetryN  uint64
 	n       uint64
 }
 
-func NewResponserHeartBeater(info ExampleProtocol.RegistryInfo, Timeout time.Duration, RetryN uint64) *ResponserHeartBeater {
-	return &ResponserHeartBeater{Info: info, Timeout: Timeout, RetryN: RetryN, n: 0}
+func NewResponserHeartBeater(info ExampleProtocol.RegistryInfo, Timeout time.Duration) *ResponserHeartBeater {
+	return &ResponserHeartBeater{Info: info, Timeout: Timeout, n: 0}
 }
 
 func (r *ResponserHeartBeater) Beat(request protocol.Request) protocol.TobeSendResponse {
@@ -54,7 +53,6 @@ func (r *ResponserHeartBeater) Beat(request protocol.Request) protocol.TobeSendR
 		Response: protocol.Response{
 			RegistryInfo: r.Info,
 			Timeout:      r.Timeout,
-			RetryN:       r.RetryN,
 			Reject:       false,
 		},
 		Option: request.RegistrantInfo.GetResponseSendOption(),
