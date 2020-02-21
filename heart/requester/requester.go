@@ -1,4 +1,4 @@
-package RequesterHeart
+package requester
 
 import (
 	"errors"
@@ -7,12 +7,12 @@ import (
 )
 
 type requester struct {
-	proto Protocol.RequestProtocol
-	heart *RequesterHeart
+	proto        Protocol.RequestProtocol
+	RetryHandler func(Protocol.TobeSendRequest, error)
 }
 
-func newRequester(proto Protocol.RequestProtocol, heart *RequesterHeart) *requester {
-	return &requester{proto, heart}
+func newRequester(proto Protocol.RequestProtocol) *requester {
+	return &requester{proto, func(Protocol.TobeSendRequest, error) {}}
 }
 
 //多次重试发送并等待回复，直到成功或达到重试次数上限
@@ -22,7 +22,7 @@ func (r *requester) Send(option Protocol.TobeSendRequest, timeout time.Duration,
 		if err == nil {
 			return response, nil
 		}
-		r.heart.Event.Retry.Emit(option, err)
+		r.RetryHandler(option, err)
 	}
 	return Protocol.Response{}, errors.New("connection failed")
 }
@@ -30,9 +30,14 @@ func (r *requester) Send(option Protocol.TobeSendRequest, timeout time.Duration,
 //发送并等待回复，直到成功或超时
 func (r *requester) SendOnce(request Protocol.TobeSendRequest, timeout time.Duration) (Protocol.Response, error) {
 	responseChan := make(chan Protocol.ReceivedResponse, 1)
+	defer func() {
+		defer func() { recover() }()
+		close(responseChan)
+	}()
 	requestChan := make(chan Protocol.TobeSendRequest, 1)
 	go r.proto.Request(requestChan, responseChan) //异步执行发送操作
 	requestChan <- request
+	close(requestChan)
 	select {
 	case response := <-responseChan:
 		return response.Response, response.Error

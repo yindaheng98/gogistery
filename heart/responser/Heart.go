@@ -1,35 +1,30 @@
-package ResponserHeart
+package responser
 
 import (
-	"github.com/yindaheng98/go-utility/Emitter"
 	"gogistery/Protocol"
 )
 
-type responserEvents struct {
-	Error *Emitter.ErrorEmitter
-}
-
-type ResponserHeart struct {
-	proto           ResponserHeartProtocol
+type Heart struct {
+	beater          HeartBeater
 	responser       *responser
-	Event           *responserEvents
+	ErrorHandler    func(error)
 	interruptChan   chan bool
 	interruptedChan chan bool
 }
 
-func NewResponserHeart(heartProto ResponserHeartProtocol, beatProto Protocol.ResponseProtocol) *ResponserHeart {
+func NewHeart(beater HeartBeater, ResponseProto Protocol.ResponseProtocol) *Heart {
 	interruptChan := make(chan bool, 1)
 	interruptedChan := make(chan bool, 1)
 	close(interruptChan)
 	close(interruptedChan)
-	return &ResponserHeart{heartProto,
-		newResponser(beatProto),
-		&responserEvents{Emitter.NewErrorEmitter()},
+	return &Heart{beater,
+		newResponser(ResponseProto),
+		func(error) {},
 		interruptChan, interruptedChan}
 }
 
 //开始接收心跳，直到主动停止
-func (h *ResponserHeart) RunBeating() {
+func (h *Heart) RunBeating() {
 	h.interruptChan = make(chan bool, 1)
 	h.interruptedChan = make(chan bool, 1)
 	defer func() {
@@ -45,9 +40,9 @@ func (h *ResponserHeart) RunBeating() {
 		go func() {
 			request, err, responseFunc = h.responser.Recv()
 			if err != nil {
-				h.Event.Error.Emit(err)
+				h.ErrorHandler(err)
 			} else {
-				responseFunc(h.proto.Beat(request))
+				responseFunc(h.beater.Beat(request))
 			}
 			responseChan <- true
 		}()
@@ -60,7 +55,7 @@ func (h *ResponserHeart) RunBeating() {
 	}
 }
 
-func (h *ResponserHeart) Stop() {
+func (h *Heart) Stop() {
 	defer func() { recover() }()
 	h.interruptChan <- true
 	<-h.interruptedChan

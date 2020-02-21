@@ -1,4 +1,4 @@
-package ResponserHeart
+package responser
 
 import (
 	"errors"

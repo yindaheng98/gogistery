@@ -2,10 +2,10 @@ package Heart
 
 import (
 	"fmt"
-	"gogistery/Heart/RequesterHeart"
-	"gogistery/Heart/ResponserHeart"
 	"gogistery/Protocol"
 	ExampleProtocol "gogistery/example/Protocol"
+	"gogistery/heart/requester"
+	"gogistery/heart/responser"
 	"math/rand"
 	"testing"
 	"time"
@@ -17,32 +17,24 @@ func ChanNetRequesterHeartTest(t *testing.T, RegistrantID string, initAddr strin
 		ID:     RegistrantID,
 		Option: ExampleProtocol.ResponseSendOption{Timestamp: time.Now()},
 	}
-	requester := RequesterHeart.NewRequesterHeart(
-		NewRequesterHeartProtocol(info, 10),
+	heart := requester.NewHeart(
+		NewRequesterHeartBeater(info, 10),
 		ExampleProtocol.NewChanNetRequestProtocol())
-	requester.Event.NewConnection.AddHandler(func(info Protocol.Response) {
+	heart.Handlers.NewConnectionHandler = func(info Protocol.Response) {
 		t.Log(s + fmt.Sprintf("New Connection-->%s", info.String()))
-	})
-	requester.Event.NewConnection.Enable()
-	requester.Event.UpdateConnection.AddHandler(func(info Protocol.Response) {
+	}
+	heart.Handlers.UpdateConnectionHandler = func(info Protocol.Response) {
 		t.Log(s + fmt.Sprintf("Update Connection-->%s", info.String()))
-	})
-	requester.Event.UpdateConnection.Enable()
-	requester.Event.Disconnection.AddHandler(func(request Protocol.TobeSendRequest, err error) {
+	}
+	heart.Handlers.DisconnectionHandler = func(request Protocol.TobeSendRequest, err error) {
 		t.Log(s + fmt.Sprintf("Disonnection-->%s,%s", err, request.String()))
-	})
-	requester.Event.Disconnection.Enable()
-	requester.Event.Retry.AddHandler(func(o Protocol.TobeSendRequest, err error) {
+	}
+	heart.Handlers.RetryHandler = func(o Protocol.TobeSendRequest, err error) {
 		t.Log(s + fmt.Sprintf("A request %s retryed because %s", o.String(), err.Error()))
-	})
-	requester.Event.Retry.Enable()
-	requester.Event.Error.AddHandler(func(err error) {
-		t.Log(s + fmt.Sprintf("An error occurred: %s", err.Error()))
-	})
-	requester.Event.Error.Enable()
+	}
 	go func() {
 		t.Log(s + fmt.Sprintf("RequesterHeart started with info %s.", info.String()))
-		err := requester.RunBeating(Protocol.TobeSendRequest{
+		err := heart.RunBeating(Protocol.TobeSendRequest{
 			Request: Protocol.Request{RegistrantInfo: info, Disconnect: false},
 			Option:  ExampleProtocol.RequestSendOption{RequestAddr: initAddr, Timestamp: time.Now()},
 		}, 10e9, 10)
@@ -61,20 +53,19 @@ func ChanNetResponserHeartTest(t *testing.T, RegistryID string) string {
 		ID:         RegistryID,
 		Option:     ExampleProtocol.RequestSendOption{RequestAddr: proto.GetAddr(), Timestamp: time.Now()},
 		Candidates: []Protocol.RegistryInfo{}}
-	responser := ResponserHeart.NewResponserHeart(NewResponserHeartProtocol(info, 2e9, 5), proto)
-	responser.Event.Error.AddHandler(func(err error) {
+	heart := responser.NewHeart(NewResponserHeartBeater(info, 2e9, 5), proto)
+	heart.ErrorHandler = func(err error) {
 		t.Log(s + fmt.Sprintf("An error occurred: %s", err.Error()))
-	})
-	responser.Event.Error.Enable()
+	}
 	go func() {
 		t.Log(s + fmt.Sprintf("ResponserHeart started with info %s.", info.String()))
-		go responser.RunBeating()
+		go heart.RunBeating()
 		time.Sleep(5e9)
-		responser.Stop()
-		responser.Stop()
-		go responser.RunBeating()
+		heart.Stop()
+		heart.Stop()
+		go heart.RunBeating()
 		time.Sleep(1e9)
-		responser.Stop()
+		heart.Stop()
 	}()
 	return proto.GetAddr()
 }
