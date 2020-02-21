@@ -6,8 +6,9 @@ import (
 )
 
 type HeartBeater interface {
-	//对接上层消息策略
+	//上一次发送重试了lastRetryN次，最后一次请求花费了lastTimeout发送完毕
 	//
-	//输入一个Beat数据响应、上一次发送时的重试次数和下一个Beat处理函数，处理响应并生成下一个Beat数据请求
-	Beat(response protocol.Response, retryN uint64, beat func(protocol.TobeSendRequest, time.Duration, uint64))
+	//处理响应并生成下一个Beat数据请求，输入到处理函数beat中
+	Beat(response protocol.Response, lastTimeout time.Duration, lastRetryN uint64,
+		beat func(protocol.TobeSendRequest, time.Duration, uint64))
 }

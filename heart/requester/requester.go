@@ -16,9 +16,16 @@ func newRequester(proto protocol.RequestProtocol) *requester {
 }
 
 //多次重试发送并等待回复，直到成功或达到重试次数上限
-func (r *requester) Send(option protocol.TobeSendRequest, timeout time.Duration, retryN *uint64) (protocol.Response, error) {
-	for ; *retryN > 0; *retryN-- {
-		response, err := r.SendOnce(option, timeout)
+func (r *requester) Send(option protocol.TobeSendRequest, timeout *time.Duration, retryN *uint64) (protocol.Response, error) {
+	lastTimeout := time.Duration(0)
+	lastRetryN := uint64(0)
+	defer func() {
+		*timeout = lastTimeout
+		*retryN = lastRetryN
+	}()
+	for ; lastRetryN <= *retryN; lastRetryN++ {
+		lastTimeout = *timeout
+		response, err := r.SendOnce(option, &lastTimeout)
 		if err == nil {
 			return response, nil
 		}
@@ -28,11 +35,13 @@ func (r *requester) Send(option protocol.TobeSendRequest, timeout time.Duration,
 }
 
 //发送并等待回复，直到成功或超时
-func (r *requester) SendOnce(request protocol.TobeSendRequest, timeout time.Duration) (protocol.Response, error) {
+func (r *requester) SendOnce(request protocol.TobeSendRequest, timeout *time.Duration) (protocol.Response, error) {
+	startTime := time.Now()
 	responseChan := make(chan protocol.ReceivedResponse, 1)
 	defer func() {
 		defer func() { recover() }()
 		close(responseChan)
+		*timeout = time.Now().Sub(startTime)
 	}()
 	requestChan := make(chan protocol.TobeSendRequest, 1)
 	go r.proto.Request(requestChan, responseChan) //异步执行发送操作
@@ -41,7 +50,7 @@ func (r *requester) SendOnce(request protocol.TobeSendRequest, timeout time.Dura
 	select {
 	case response := <-responseChan:
 		return response.Response, response.Error
-	case <-time.After(timeout):
+	case <-time.After(*timeout):
 		return protocol.Response{}, errors.New("send timeout")
 	}
 }

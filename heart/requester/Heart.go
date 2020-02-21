@@ -32,8 +32,8 @@ func (h *Heart) RunBeating(initRequest protocol.TobeSendRequest, initTimeout tim
 	}()
 	run := true
 	for run {
-		retryN := RetryN
-		response, err := h.requester.Send(request, Timeout, &retryN)
+		timeout, retryN := Timeout, RetryN
+		response, err := h.requester.Send(request, &timeout, &retryN)
 		if err != nil {
 			return err
 		}
@@ -41,7 +41,7 @@ func (h *Heart) RunBeating(initRequest protocol.TobeSendRequest, initTimeout tim
 			h.Handlers.UpdateConnectionHandler(response)
 		}
 		run = false
-		h.beater.Beat(response, RetryN-retryN,
+		h.beater.Beat(response, timeout, retryN,
 			func(requestB protocol.TobeSendRequest, timeoutB time.Duration, retryNB uint64) {
 				request, Timeout, RetryN = requestB, timeoutB, retryNB
 				run = true

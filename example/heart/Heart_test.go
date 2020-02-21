@@ -46,6 +46,8 @@ func ChanNetRequesterHeartTest(t *testing.T, RegistrantID string, initAddr strin
 	}()
 }
 
+const TEST_TIMEOUT = 1e9
+
 func ChanNetResponserHeartTest(t *testing.T, RegistryID string) string {
 	s := fmt.Sprintf("--ChanNetRequesterHeartTest(RegistryID:%s)-->", RegistryID)
 	proto := ExampleProtocol.NewChanNetResponseProtocol()
@@ -53,7 +55,7 @@ func ChanNetResponserHeartTest(t *testing.T, RegistryID string) string {
 		ID:         RegistryID,
 		Option:     ExampleProtocol.RequestSendOption{RequestAddr: proto.GetAddr(), Timestamp: time.Now()},
 		Candidates: []protocol.RegistryInfo{}}
-	heart := responser.NewHeart(NewResponserHeartBeater(info, 2e9), proto)
+	heart := responser.NewHeart(NewResponserHeartBeater(info, TEST_TIMEOUT), proto)
 	heart.ErrorHandler = func(err error) {
 		t.Log(s + fmt.Sprintf("An error occurred: %s", err.Error()))
 	}
