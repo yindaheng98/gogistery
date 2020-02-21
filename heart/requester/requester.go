@@ -37,12 +37,9 @@ func (r *requester) Send(option protocol.TobeSendRequest, timeout *time.Duration
 //发送并等待回复，直到成功或超时
 func (r *requester) SendOnce(request protocol.TobeSendRequest, timeout *time.Duration) (protocol.Response, error) {
 	startTime := time.Now()
+	defer func() { *timeout = time.Now().Sub(startTime) }()
 	responseChan := make(chan protocol.ReceivedResponse, 1)
-	defer func() {
-		defer func() { recover() }()
-		close(responseChan)
-		*timeout = time.Now().Sub(startTime)
-	}()
+	defer close(responseChan)
 	requestChan := make(chan protocol.TobeSendRequest, 1)
 	go r.proto.Request(requestChan, responseChan) //异步执行发送操作
 	requestChan <- request
