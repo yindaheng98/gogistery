@@ -1,4 +1,4 @@
-package Registry
+package registry
 
 import (
 	"github.com/yindaheng98/go-utility/TimeoutMap"

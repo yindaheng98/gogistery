@@ -2,10 +2,10 @@ package RegistryRegistrant
 
 import (
 	"fmt"
-	"gogistery/Registrant"
-	"gogistery/Registry"
 	ExampleProtocol "gogistery/example/protocol"
 	"gogistery/protocol"
+	"gogistery/registrant"
+	"gogistery/registry"
 	"testing"
 	"time"
 )
@@ -28,7 +28,7 @@ func RegistryTest(t *testing.T) {
 	}
 	RegistryInfos[proto.GetAddr()] = info
 	LastRegistryInfo = info
-	registry := Registry.New(info, 5, NewTimeoutController(1e9, 3e9, 2), proto)
+	registry := registry.New(info, 5, NewTimeoutController(1e9, 3e9, 2), proto)
 	registry.Events.NewConnection.AddHandler(func(i protocol.RegistrantInfo) {
 		t.Log(fmt.Sprintf("RegistryTest:%s--NewConnection--%s", info.GetRegistryID(), i.GetRegistrantID()))
 	})
@@ -53,7 +53,7 @@ func RegistrantTest(t *testing.T, i int) {
 		ID:     fmt.Sprintf("REGISTRANT_%02d", i),
 		Option: ExampleProtocol.ResponseSendOption{},
 	}
-	registrant := Registrant.New(info, 5,
+	registrant := registrant.New(info, 5,
 		NewRegistryCandidateList(LastRegistryInfo, SERVERN, 1e9, 3),
 		RetryNController{}, proto)
 	registrant.Events.NewConnection.AddHandler(func(i protocol.RegistryInfo) {

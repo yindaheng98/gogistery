@@ -1,4 +1,4 @@
-package Registrant
+package registrant
 
 import (
 	"github.com/yindaheng98/go-utility/Emitter"

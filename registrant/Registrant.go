@@ -1,4 +1,4 @@
-package Registrant
+package registrant
 
 import (
 	"gogistery/protocol"
