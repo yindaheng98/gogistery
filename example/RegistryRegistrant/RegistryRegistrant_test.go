@@ -65,7 +65,11 @@ func RegistrantTest(t *testing.T, i int) {
 			info.GetRegistrantID(), request.Option.String(), err))
 	})
 	registrant.Events.Disconnection.Enable()
-	go registrant.Run()
+	go func() {
+		registrant.Run()
+		time.Sleep(18e9)
+		registrant.Stop()
+	}()
 }
 
 func TestRegistryRegistrant(t *testing.T) {

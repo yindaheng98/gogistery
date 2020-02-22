@@ -46,16 +46,16 @@ func (r *Registrant) Run() {
 	stoppedChan := make(chan bool, 1)
 	connChan := make(chan []protocol.RegistryInfo, 1)
 	connChan <- make([]protocol.RegistryInfo, len(r.hearts))
-	for i, heart := range r.hearts {
-		go func() {
+	for i, h := range r.hearts {
+		go func(i int, h *heart) {
 			atomic.AddInt64(&r.runningN, 1)
-			r.heartRoutine(heart, i, connChan)
+			r.heartRoutine(h, i, connChan)
 			atomic.AddInt64(&r.runningN, -1)
 			if atomic.LoadInt64(&r.runningN) <= 0 {
 				stoppedChan <- true
 				close(stoppedChan)
 			}
-		}()
+		}(i, h)
 	}
 	<-stoppedChan
 }
