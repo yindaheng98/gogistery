@@ -29,23 +29,27 @@ func RegistryTest(t *testing.T) {
 	}
 	RegistryInfos[proto.GetAddr()] = info
 	LastRegistryInfo = info
-	registry := registry.New(info, 5, NewTimeoutController(1e9, 3e9, 2), proto)
-	registry.Events.NewConnection.AddHandler(func(i protocol.RegistrantInfo) {
+	r := registry.New(info, 5, NewTimeoutController(1e9, 3e9, 2), proto)
+	r.Events.NewConnection.AddHandler(func(i protocol.RegistrantInfo) {
 		t.Log(fmt.Sprintf("RegistryTest:%s--NewConnection--%s", info.GetRegistryID(), i.GetRegistrantID()))
 	})
-	registry.Events.NewConnection.Enable()
-	registry.Events.Disconnection.AddHandler(func(i protocol.RegistrantInfo) {
+	r.Events.NewConnection.Enable()
+	r.Events.Disconnection.AddHandler(func(i protocol.RegistrantInfo) {
 		t.Log(fmt.Sprintf("RegistryTest:%s--Disconnection--%s", info.GetRegistryID(), i.GetRegistrantID()))
 	})
-	registry.Events.Disconnection.Enable()
+	r.Events.Disconnection.Enable()
 	go func() {
-		go registry.Run()
+		r.Run()
+		t.Log(fmt.Sprintf("%s stopped itself.", info.ID))
+	}()
+	go func() {
 		time.Sleep(15e9)
-		registry.Stop()
+		r.Stop()
+		t.Log(fmt.Sprintf("%s stopped manually.", info.ID))
 	}()
 }
 
-const SERVERN = 5
+const SERVERN = 1
 const CLIENTN = 30
 
 func RegistrantTest(t *testing.T, i int) {
@@ -54,22 +58,30 @@ func RegistrantTest(t *testing.T, i int) {
 		ID:     fmt.Sprintf("REGISTRANT_%02d", i),
 		Option: ExampleProtocol.ResponseSendOption{},
 	}
-	registrant := registrant.New(info, 5,
-		CandidateList.NewSimpleCandidateList(SERVERN, LastRegistryInfo, 1e9, 3),
+	r := registrant.New(info, 5,
+		CandidateList.NewSimpleCandidateList(SERVERN, LastRegistryInfo, 2e9, 10),
 		RetryNController{}, proto)
-	registrant.Events.NewConnection.AddHandler(func(i protocol.RegistryInfo) {
+	r.Events.NewConnection.AddHandler(func(i protocol.RegistryInfo) {
 		t.Log(fmt.Sprintf("RegistrantTest:%s--NewConnection--%s", info.GetRegistrantID(), i.GetRegistryID()))
 	})
-	registrant.Events.NewConnection.Enable()
-	registrant.Events.Disconnection.AddHandler(func(request protocol.TobeSendRequest, err error) {
+	r.Events.NewConnection.Enable()
+	r.Events.Disconnection.AddHandler(func(request protocol.TobeSendRequest, err error) {
 		t.Log(fmt.Sprintf("RegistrantTest:%s--Disconnection--%s. error:%s",
 			info.GetRegistrantID(), request.Option.String(), err))
 	})
-	registrant.Events.Disconnection.Enable()
+	r.Events.Disconnection.Enable()
+	r.Events.Error.AddHandler(func(err error) {
+		t.Log(fmt.Sprintf("RegistrantTest:%s--Error--%s", info.GetRegistrantID(), err))
+	})
+	r.Events.Error.Enable()
 	go func() {
-		registrant.Run()
-		time.Sleep(18e9)
-		registrant.Stop()
+		r.Run()
+		t.Log(fmt.Sprintf("%s stopped itself.", info.ID))
+	}()
+	go func() {
+		time.Sleep(10e9)
+		r.Stop()
+		t.Log(fmt.Sprintf("%s stopped manually.", info.ID))
 	}()
 }
 
