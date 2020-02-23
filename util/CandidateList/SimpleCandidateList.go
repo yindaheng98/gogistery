@@ -8,20 +8,20 @@ import (
 )
 
 type SimpleCandidateList struct {
-	defaultTimeout time.Duration
-	defaultRetryN  uint64
-	set            *SortedSet.SortedSet
-	setMu          *sync.RWMutex
-	waitChan       chan bool
+	initTimeout time.Duration
+	initRetryN  uint64
+	set         *SortedSet.SortedSet
+	setMu       *sync.RWMutex
+	waitChan    chan bool
 }
 
-func NewSimpleCandidateList(initRegistry protocol.RegistryInfo, CandidateN uint64, defaultTimeout time.Duration, defaultRetryN uint64) *SimpleCandidateList {
+func NewSimpleCandidateList(size uint64, initRegistry protocol.RegistryInfo, initTimeout time.Duration, initRetryN uint64) *SimpleCandidateList {
 	proto := &SimpleCandidateList{
-		defaultTimeout: defaultTimeout,
-		defaultRetryN:  defaultRetryN,
-		set:            SortedSet.New(CandidateN),
-		setMu:          new(sync.RWMutex),
-		waitChan:       make(chan bool, 1),
+		initTimeout: initTimeout,
+		initRetryN:  initRetryN,
+		set:         SortedSet.New(size),
+		setMu:       new(sync.RWMutex),
+		waitChan:    make(chan bool, 1),
 	}
 	proto.set.Update(element{initRegistry}, 0)
 	return proto
@@ -55,7 +55,7 @@ func (p *SimpleCandidateList) GetCandidate(excepts []protocol.RegistryInfo) (pro
 			el := els[0].(element)
 			p.set.Remove(el)
 			p.setMu.Unlock()
-			return el.RegistryInfo, p.defaultTimeout, p.defaultRetryN
+			return el.RegistryInfo, p.initTimeout, p.initRetryN
 		}
 		p.setMu.Unlock()
 		<-p.waitChan

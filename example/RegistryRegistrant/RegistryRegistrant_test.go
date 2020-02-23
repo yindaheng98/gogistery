@@ -55,7 +55,7 @@ func RegistrantTest(t *testing.T, i int) {
 		Option: ExampleProtocol.ResponseSendOption{},
 	}
 	registrant := registrant.New(info, 5,
-		CandidateList.NewSimpleCandidateList(LastRegistryInfo, SERVERN, 1e9, 3),
+		CandidateList.NewSimpleCandidateList(SERVERN, LastRegistryInfo, 1e9, 3),
 		RetryNController{}, proto)
 	registrant.Events.NewConnection.AddHandler(func(i protocol.RegistryInfo) {
 		t.Log(fmt.Sprintf("RegistrantTest:%s--NewConnection--%s", info.GetRegistrantID(), i.GetRegistryID()))
