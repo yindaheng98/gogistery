@@ -6,6 +6,7 @@ import (
 	"gogistery/protocol"
 	"gogistery/registrant"
 	"gogistery/registry"
+	"gogistery/util/CandidateList"
 	"testing"
 	"time"
 )
@@ -54,7 +55,7 @@ func RegistrantTest(t *testing.T, i int) {
 		Option: ExampleProtocol.ResponseSendOption{},
 	}
 	registrant := registrant.New(info, 5,
-		NewRegistryCandidateList(LastRegistryInfo, SERVERN, 1e9, 3),
+		CandidateList.NewSimpleCandidateList(LastRegistryInfo, SERVERN, 1e9, 3),
 		RetryNController{}, proto)
 	registrant.Events.NewConnection.AddHandler(func(i protocol.RegistryInfo) {
 		t.Log(fmt.Sprintf("RegistrantTest:%s--NewConnection--%s", info.GetRegistrantID(), i.GetRegistryID()))
