@@ -7,6 +7,8 @@ import (
 	"gogistery/registrant"
 	"gogistery/registry"
 	"gogistery/util/CandidateList"
+	"gogistery/util/RetryNController"
+	"gogistery/util/TimeoutController"
 	"testing"
 	"time"
 )
@@ -29,7 +31,9 @@ func RegistryTest(t *testing.T) {
 	}
 	RegistryInfos[proto.GetAddr()] = info
 	LastRegistryInfo = info
-	r := registry.New(info, 5, NewTimeoutController(1e9, 3e9, 2), proto)
+	r := registry.New(info, 5,
+		TimeoutController.NewLogTimeoutController(1e9, 3e9, 2),
+		proto)
 	r.Events.NewConnection.AddHandler(func(i protocol.RegistrantInfo) {
 		t.Log(fmt.Sprintf("RegistryTest:%s--NewConnection--%s", info.GetRegistryID(), i.GetRegistrantID()))
 	})
@@ -60,7 +64,7 @@ func RegistrantTest(t *testing.T, i int) {
 	}
 	r := registrant.New(info, 5,
 		CandidateList.NewSimpleCandidateList(SERVERN, LastRegistryInfo, 2e9, 10),
-		RetryNController{}, proto)
+		RetryNController.SimpleRetryNController{}, proto)
 	r.Events.NewConnection.AddHandler(func(i protocol.RegistryInfo) {
 		t.Log(fmt.Sprintf("RegistrantTest:%s--NewConnection--%s", info.GetRegistrantID(), i.GetRegistryID()))
 	})

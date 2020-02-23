@@ -1,13 +1,13 @@
-package RegistryRegistrant
+package RetryNController
 
 import (
 	"gogistery/protocol"
 	"time"
 )
 
-type RetryNController struct{}
+type SimpleRetryNController struct{}
 
-func (c RetryNController) GetWaitTimeoutRetryN(response protocol.Response, lastTimeout time.Duration, lastRetryN uint64) (time.Duration, time.Duration, uint64) {
+func (c SimpleRetryNController) GetWaitTimeoutRetryN(response protocol.Response, lastTimeout time.Duration, lastRetryN uint64) (time.Duration, time.Duration, uint64) {
 	totalTime := response.GetTimeout()
 	expectRetryN := (lastRetryN + 3) * 2                          //预计的重试次数
 	expectTimeout := lastTimeout * 2                              //预计的单次发送时长
