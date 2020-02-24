@@ -14,8 +14,9 @@ type Registrant struct {
 	stopChan          chan bool               //传递停止信息
 	WatchdogTimeDelta time.Duration
 
-	candidates RegistryCandidateList //候选服务器选择协议
-	Events     *events
+	candidates         RegistryCandidateList        //候选服务器选择协议
+	CandidateBlacklist chan []protocol.RegistryInfo //不可以进行连接的候选服务器
+	Events             *events
 }
 
 func New(Info protocol.RegistrantInfo, regitryN uint, CandidateList RegistryCandidateList,
@@ -26,13 +27,15 @@ func New(Info protocol.RegistrantInfo, regitryN uint, CandidateList RegistryCand
 		stopChan:          make(chan bool, 1),
 		WatchdogTimeDelta: 1e9,
 
-		candidates: CandidateList,
-		Events:     newEvents(),
+		candidates:         CandidateList,
+		CandidateBlacklist: make(chan []protocol.RegistryInfo, 1),
+		Events:             newEvents(),
 	}
-	close(registrant.stopChan)
 	for i := uint(0); i < regitryN; i++ {
 		registrant.hearts[i] = newHeart(registrant, retryNController, RequestProto)
 	}
+	close(registrant.stopChan)
+	registrant.CandidateBlacklist <- []protocol.RegistryInfo{}
 	return registrant
 }
 
@@ -91,9 +94,15 @@ func (r *Registrant) watchDog(beatingN *int64) {
 
 func (r *Registrant) heartRoutine(h *heart, i int, connChan chan []protocol.RegistryInfo, beatingN *int64) {
 	for {
-		conn := <-connChan                 //从队列中取出已有连接列表
-		var except []protocol.RegistryInfo //去除空项
-		for _, c := range conn {
+		var except []protocol.RegistryInfo
+		excepts := <-r.CandidateBlacklist //取不可连接列表
+		for _, c := range excepts {       //去除空项
+			if c != nil {
+				except = append(except, c)
+			}
+		}
+		conn := <-connChan       //取出已有连接列表
+		for _, c := range conn { //去除空项
 			if c != nil {
 				except = append(except, c)
 			}
