@@ -2,8 +2,8 @@ package heart
 
 import (
 	"fmt"
-	ExampleProtocol "gogistery/example/protocol"
-	"gogistery/protocol"
+	ExampleProtocol "github.com/yindaheng98/gogistry/example/protocol"
+	"github.com/yindaheng98/gogistry/protocol"
 	"time"
 )
 

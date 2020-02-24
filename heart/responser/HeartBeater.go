@@ -1,7 +1,7 @@
 package responser
 
 import (
-	"gogistery/protocol"
+	"github.com/yindaheng98/gogistry/protocol"
 )
 
 type HeartBeater interface {

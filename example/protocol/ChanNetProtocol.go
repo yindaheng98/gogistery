@@ -1,8 +1,8 @@
 package protocol
 
 import (
-	ChanNet2 "gogistery/example/protocol/ChanNet"
-	"gogistery/protocol"
+	ChanNet2 "github.com/yindaheng98/gogistry/example/protocol/ChanNet"
+	"github.com/yindaheng98/gogistry/protocol"
 )
 
 var ChanNet = ChanNet2.New(1e9, 30, "%02d.service.chanNet", 100)

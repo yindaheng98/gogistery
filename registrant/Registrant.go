@@ -2,7 +2,7 @@ package registrant
 
 import (
 	"errors"
-	"gogistery/protocol"
+	"github.com/yindaheng98/gogistry/protocol"
 	"sync"
 	"sync/atomic"
 	"time"

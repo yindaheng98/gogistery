@@ -1,7 +1,7 @@
 package requester
 
 import (
-	"gogistery/protocol"
+	"github.com/yindaheng98/gogistry/protocol"
 	"time"
 )
 

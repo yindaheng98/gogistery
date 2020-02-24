@@ -2,8 +2,8 @@ package registry
 
 import (
 	"github.com/yindaheng98/go-utility/TimeoutMap"
-	"gogistery/heart/responser"
-	"gogistery/protocol"
+	"github.com/yindaheng98/gogistry/heart/responser"
+	"github.com/yindaheng98/gogistry/protocol"
 	"sync"
 	"time"
 )

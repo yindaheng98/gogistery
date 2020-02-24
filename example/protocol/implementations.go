@@ -2,7 +2,7 @@ package protocol
 
 import (
 	"fmt"
-	"gogistery/protocol"
+	"github.com/yindaheng98/gogistry/protocol"
 	"time"
 )
 

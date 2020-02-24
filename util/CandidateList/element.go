@@ -1,6 +1,6 @@
 package CandidateList
 
-import "gogistery/protocol"
+import "github.com/yindaheng98/gogistry/protocol"
 
 type element struct {
 	RegistryInfo protocol.RegistryInfo

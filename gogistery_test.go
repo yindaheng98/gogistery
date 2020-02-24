@@ -2,11 +2,11 @@ package gogistery
 
 import (
 	"fmt"
-	ExampleProtocol "gogistery/example/protocol"
-	"gogistery/protocol"
-	"gogistery/util/CandidateList"
-	"gogistery/util/RetryNController"
-	"gogistery/util/TimeoutController"
+	ExampleProtocol "github.com/yindaheng98/gogistry/example/protocol"
+	"github.com/yindaheng98/gogistry/protocol"
+	"github.com/yindaheng98/gogistry/util/CandidateList"
+	"github.com/yindaheng98/gogistry/util/RetryNController"
+	"github.com/yindaheng98/gogistry/util/TimeoutController"
 	"testing"
 	"time"
 )

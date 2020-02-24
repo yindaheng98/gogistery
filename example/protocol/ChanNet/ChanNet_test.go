@@ -2,7 +2,7 @@ package ChanNet
 
 import (
 	"fmt"
-	"gogistery/protocol"
+	"github.com/yindaheng98/gogistry/protocol"
 	"math/rand"
 	"testing"
 	"time"
@@ -104,7 +104,6 @@ func ResponseTest(t *testing.T, addr string, chanNet *ChanNet) {
 			Candidates: nil,
 		},
 		Timeout: 0,
-		RetryN:  0,
 		Reject:  false,
 	}
 	t.Log(s + fmt.Sprintf("And the response will be %s", response.String()))

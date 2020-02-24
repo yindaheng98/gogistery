@@ -2,7 +2,7 @@ package responser
 
 import (
 	"errors"
-	"gogistery/protocol"
+	"github.com/yindaheng98/gogistry/protocol"
 )
 
 type responser struct {

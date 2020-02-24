@@ -2,10 +2,10 @@ package heart
 
 import (
 	"fmt"
-	ExampleProtocol "gogistery/example/protocol"
-	"gogistery/heart/requester"
-	"gogistery/heart/responser"
-	"gogistery/protocol"
+	ExampleProtocol "github.com/yindaheng98/gogistry/example/protocol"
+	"github.com/yindaheng98/gogistry/heart/requester"
+	"github.com/yindaheng98/gogistry/heart/responser"
+	"github.com/yindaheng98/gogistry/protocol"
 	"math/rand"
 	"testing"
 	"time"

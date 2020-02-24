@@ -1,7 +1,7 @@
 package registry
 
 import (
-	"gogistery/protocol"
+	"github.com/yindaheng98/gogistry/protocol"
 )
 
 type beater struct {

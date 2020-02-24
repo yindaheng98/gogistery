@@ -1,9 +1,9 @@
 package gogistery
 
 import (
-	"gogistery/protocol"
-	"gogistery/registrant"
-	"gogistery/registry"
+	"github.com/yindaheng98/gogistry/protocol"
+	"github.com/yindaheng98/gogistry/registrant"
+	"github.com/yindaheng98/gogistry/registry"
 )
 
 func NewRegistry(

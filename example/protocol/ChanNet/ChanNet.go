@@ -3,7 +3,7 @@ package ChanNet
 import (
 	"errors"
 	"fmt"
-	"gogistery/protocol"
+	"github.com/yindaheng98/gogistry/protocol"
 	"math/rand"
 	"time"
 )

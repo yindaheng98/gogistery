@@ -2,7 +2,7 @@ package emitters
 
 import (
 	"github.com/yindaheng98/go-utility/Emitter"
-	"gogistery/protocol"
+	"github.com/yindaheng98/gogistry/protocol"
 )
 
 type RegistryInfoEmitter struct {

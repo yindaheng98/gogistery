@@ -1,6 +1,6 @@
 package ChanNet
 
-import "gogistery/protocol"
+import "github.com/yindaheng98/gogistry/protocol"
 
 type chanPair struct {
 	requestChan  <-chan protocol.Request

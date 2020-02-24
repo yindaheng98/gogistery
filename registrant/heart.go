@@ -1,8 +1,8 @@
 package registrant
 
 import (
-	"gogistery/heart/requester"
-	"gogistery/protocol"
+	"github.com/yindaheng98/gogistry/heart/requester"
+	"github.com/yindaheng98/gogistry/protocol"
 	"time"
 )
 

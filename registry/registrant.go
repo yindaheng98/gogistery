@@ -1,6 +1,6 @@
 package registry
 
-import "gogistery/protocol"
+import "github.com/yindaheng98/gogistry/protocol"
 
 type registrantTimeoutType struct {
 	RegistrantInfo protocol.RegistrantInfo

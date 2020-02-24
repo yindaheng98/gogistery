@@ -1,4 +1,4 @@
-module gogistery
+module github.com/yindaheng98/gogistry
 
 go 1.13
 

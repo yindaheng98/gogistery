@@ -2,7 +2,7 @@ package protocol
 
 import (
 	"fmt"
-	"gogistery/protocol"
+	"github.com/yindaheng98/gogistry/protocol"
 	"math/rand"
 	"testing"
 	"time"
@@ -61,7 +61,6 @@ func ResponseTest(t *testing.T, proto ChanNetResponseProtocol) {
 				Candidates: []protocol.RegistryInfo{},
 			},
 			Timeout: 0,
-			RetryN:  0,
 			Reject:  false,
 		},
 		Option: request.RegistrantInfo.GetResponseSendOption(),

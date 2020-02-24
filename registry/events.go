@@ -2,7 +2,7 @@ package registry
 
 import (
 	"github.com/yindaheng98/go-utility/Emitter"
-	"gogistery/util/emitters"
+	"github.com/yindaheng98/gogistry/util/emitters"
 )
 
 type events struct {
