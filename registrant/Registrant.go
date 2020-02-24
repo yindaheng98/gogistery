@@ -95,18 +95,19 @@ func (r *Registrant) watchDog(beatingN *int64) {
 func (r *Registrant) heartRoutine(h *heart, i int, connChan chan []protocol.RegistryInfo, beatingN *int64) {
 	for {
 		var except []protocol.RegistryInfo
-		excepts := <-r.CandidateBlacklist //取不可连接列表
-		for _, c := range excepts {       //去除空项
-			if c != nil {
-				except = append(except, c)
-			}
-		}
 		conn := <-connChan       //取出已有连接列表
 		for _, c := range conn { //去除空项
 			if c != nil {
 				except = append(except, c)
 			}
 		}
+		excepts := <-r.CandidateBlacklist //取不可连接列表
+		for _, c := range excepts {       //去除空项
+			if c != nil {
+				except = append(except, c)
+			}
+		}
+		r.CandidateBlacklist <- excepts
 
 		var initRegistryInfo protocol.RegistryInfo
 		var initTimeout time.Duration
