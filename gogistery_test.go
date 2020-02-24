@@ -7,6 +7,7 @@ import (
 	"github.com/yindaheng98/gogistry/util/CandidateList"
 	"github.com/yindaheng98/gogistry/util/RetryNController"
 	"github.com/yindaheng98/gogistry/util/TimeoutController"
+	"math/rand"
 	"testing"
 	"time"
 )
@@ -54,6 +55,31 @@ func RegistryTest(t *testing.T) {
 const SERVERN = 5
 const CLIENTN = 30
 
+type TestPINGer struct {
+	failRate uint8
+	src      rand.Source
+	maxT     time.Duration
+}
+
+func NewTestPINGer(failRate uint8, maxT time.Duration) *TestPINGer {
+	return &TestPINGer{failRate, rand.NewSource(10), maxT}
+}
+
+func (p *TestPINGer) PING(info protocol.RegistryInfo) bool {
+	s := fmt.Sprintf("TestPINGer.PING(%s)-->", info.String())
+	r := rand.New(p.src).Int31n(100)
+	timeout := time.Duration(rand.New(p.src).Uint64()) % p.maxT
+	s += fmt.Sprintf("This PING will return in %d. ", timeout)
+	if uint8(r) < p.failRate {
+		s += fmt.Sprintf("But it was failed(failRate:%d,r:%d).", p.failRate, r)
+	} else {
+		s += "And it succeed"
+	}
+	fmt.Println(s)
+	time.Sleep(timeout)
+	return uint8(r) >= p.failRate
+}
+
 func RegistrantTest(t *testing.T, i int) {
 	proto := ExampleProtocol.NewChanNetRequestProtocol()
 	info := ExampleProtocol.RegistrantInfo{
@@ -62,7 +88,8 @@ func RegistrantTest(t *testing.T, i int) {
 		Option: ExampleProtocol.ResponseSendOption{},
 	}
 	r := NewRegistrant(info, 5,
-		CandidateList.NewSimpleCandidateList(SERVERN, LastRegistryInfo, 2e9, 10),
+		//CandidateList.NewSimpleCandidateList(SERVERN, LastRegistryInfo, 2e9, 10),
+		CandidateList.NewPingerCandidateList(SERVERN, NewTestPINGer(30, 1e9), 1e9, LastRegistryInfo, 2e9, 10),
 		RetryNController.SimpleRetryNController{}, proto)
 	r.Events.NewConnection.AddHandler(func(i protocol.RegistryInfo) {
 		t.Log(fmt.Sprintf("RegistrantTest:%s--NewConnection--%s", info.GetRegistrantID(), i.GetRegistryID()))
