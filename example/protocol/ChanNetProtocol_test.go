@@ -15,8 +15,11 @@ func RequestTest(t *testing.T, proto ChanNetRequestProtocol, RegistrantID string
 	responseChan := make(chan protocol.ReceivedResponse, 1)
 	req := protocol.TobeSendRequest{
 		Request: protocol.Request{
-			RegistrantInfo: RegistrantInfo{ID: RegistrantID, Option: ResponseSendOption{Timestamp: time.Now()}},
-			Disconnect:     false,
+			RegistrantInfo: RegistrantInfo{
+				ID:     RegistrantID,
+				Type:   "REGISTRANT_TYPE_0",
+				Option: ResponseSendOption{Timestamp: time.Now()}},
+			Disconnect: false,
 		},
 		Option: RequestSendOption{RequestAddr: addr, Timestamp: time.Now()},
 	}
@@ -53,7 +56,8 @@ func ResponseTest(t *testing.T, proto ChanNetResponseProtocol) {
 	response := protocol.TobeSendResponse{
 		Response: protocol.Response{
 			RegistryInfo: RegistryInfo{
-				ID: proto.GetAddr(),
+				ID:   proto.GetAddr(),
+				Type: "REGISTRY_TYPE_0",
 				Option: RequestSendOption{
 					RequestAddr: proto.GetAddr(),
 					Timestamp:   time.Now(),

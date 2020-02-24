@@ -19,17 +19,21 @@ func (o TestResponseSendOption) String() string {
 
 type TestRegistrantInfo struct {
 	ID     string
+	Type   string
 	Option TestResponseSendOption
 }
 
 func (info TestRegistrantInfo) GetRegistrantID() string {
 	return info.ID
 }
+func (info TestRegistrantInfo) GetServiceType() string {
+	return info.Type
+}
 func (info TestRegistrantInfo) GetResponseSendOption() protocol.ResponseSendOption {
 	return info.Option
 }
 func (info TestRegistrantInfo) String() string {
-	return fmt.Sprintf("TestRegistrantInfo{ID:%s,Option:%s}", info.ID, info.Option.String())
+	return fmt.Sprintf("TestRegistrantInfo{ID:%s,Type:%s,Option:%s}", info.ID, info.Type, info.Option.String())
 }
 
 type TestRequestSendOption struct {
@@ -43,12 +47,16 @@ func (o TestRequestSendOption) String() string {
 
 type TestRegistryInfo struct {
 	ID         string
+	Type       string
 	Option     TestRequestSendOption
 	Candidates []protocol.RegistryInfo
 }
 
 func (info TestRegistryInfo) GetRegistryID() string {
 	return info.ID
+}
+func (info TestRegistryInfo) GetServiceType() string {
+	return info.Type
 }
 func (info TestRegistryInfo) GetRequestSendOption() protocol.RequestSendOption {
 	return info.Option
@@ -61,14 +69,15 @@ func (info TestRegistryInfo) String() string {
 	for _, RegistryInfo := range info.Candidates {
 		Candidates += RegistryInfo.String() + ","
 	}
-	return fmt.Sprintf("TestRegistryInfo{ID:%s,Option:%s,Candidates:[%s]}",
-		info.ID, info.Option.String(), Candidates)
+	return fmt.Sprintf("TestRegistryInfo{ID:%s,Type:%s,Option:%s,Candidates:[%s]}",
+		info.ID, info.Type, info.Option.String(), Candidates)
 }
 
 func RequestTest(t *testing.T, addr string, chanNet *ChanNet, i int) {
 	request := protocol.Request{
 		RegistrantInfo: TestRegistrantInfo{
-			ID: fmt.Sprintf("Registrant_%s", addr),
+			ID:   fmt.Sprintf("Registrant_%s", addr),
+			Type: "REGISTRANT_TYPE_0",
 			Option: TestResponseSendOption{
 				ID:      fmt.Sprintf("RES_OPT_%02d", i),
 				Encrypt: "AES_RESPONSE",
@@ -96,7 +105,8 @@ func ResponseTest(t *testing.T, addr string, chanNet *ChanNet) {
 	s += fmt.Sprintf("Request arrived at '%s': %s, ", addr, request.String())
 	response := protocol.Response{
 		RegistryInfo: TestRegistryInfo{
-			ID: fmt.Sprintf("Registry_%s", addr),
+			ID:   fmt.Sprintf("Registry_%s", addr),
+			Type: "REGISTRY_TYPE_0",
 			Option: TestRequestSendOption{
 				ID:      "REQ_OPT_TO_" + request.RegistrantInfo.GetResponseSendOption().(TestResponseSendOption).ID,
 				Encrypt: "AES_REQUEST",

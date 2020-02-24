@@ -10,6 +10,7 @@ type ResponseSendOption interface {
 //记录服务器端收到的注册器信息
 type RegistrantInfo interface {
 	GetRegistrantID() string
+	GetServiceType() string                    //记录服务类型，注册中心和注册器的服务类型必须一致
 	GetResponseSendOption() ResponseSendOption //此服务端接收何种请求
 	String() string
 }

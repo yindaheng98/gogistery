@@ -16,17 +16,21 @@ func (o ResponseSendOption) String() string {
 
 type RegistrantInfo struct {
 	ID     string
+	Type   string
 	Option ResponseSendOption
 }
 
 func (info RegistrantInfo) GetRegistrantID() string {
 	return info.ID
 }
+func (info RegistrantInfo) GetServiceType() string {
+	return info.Type
+}
 func (info RegistrantInfo) GetResponseSendOption() protocol.ResponseSendOption {
 	return info.Option
 }
 func (info RegistrantInfo) String() string {
-	return fmt.Sprintf("RegistrantInfo{ID:%s,Option:%s}", info.ID, info.Option.String())
+	return fmt.Sprintf("RegistrantInfo{ID:%s,Type:%s,Option:%s}", info.ID, info.Type, info.Option.String())
 }
 
 type RequestSendOption struct {
@@ -40,12 +44,16 @@ func (o RequestSendOption) String() string {
 
 type RegistryInfo struct {
 	ID         string
+	Type       string
 	Option     RequestSendOption
 	Candidates []protocol.RegistryInfo
 }
 
 func (info RegistryInfo) GetRegistryID() string {
 	return info.ID
+}
+func (info RegistryInfo) GetServiceType() string {
+	return info.Type
 }
 func (info RegistryInfo) GetRequestSendOption() protocol.RequestSendOption {
 	return info.Option
@@ -58,6 +66,6 @@ func (info RegistryInfo) String() string {
 	for _, RegistryInfo := range info.Candidates {
 		Candidates += RegistryInfo.String() + ","
 	}
-	return fmt.Sprintf("RegistryInfo{ID:%s,Option:%s,Candidates:[%s]}",
-		info.ID, info.Option.String(), Candidates)
+	return fmt.Sprintf("RegistryInfo{ID:%s,Type:%s,Option:%s,Candidates:[%s]}",
+		info.ID, info.Type, info.Option.String(), Candidates)
 }

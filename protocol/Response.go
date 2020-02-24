@@ -13,6 +13,7 @@ type RequestSendOption interface {
 //记录服务器信息
 type RegistryInfo interface {
 	GetRegistryID() string
+	GetServiceType() string                  //记录服务类型，注册中心和注册器的服务类型必须一致
 	GetRequestSendOption() RequestSendOption //此服务端接收何种请求
 	GetCandidates() []RegistryInfo           //候选注册器信息列表
 	String() string
