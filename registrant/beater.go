@@ -31,8 +31,8 @@ func (p *beater) Stop() {
 	close(p.stopChan)  //关闭停止信息通道
 }
 func (p *beater) Beat(response protocol.Response, lastTimeout time.Duration, lastRetryN uint64, beat func(protocol.TobeSendRequest, time.Duration, uint64)) {
-	request := p.heart.register(response)
-	if response.IsReject() { //如果注册中心拒绝了连接请求
+	request, ok := p.heart.register(response)
+	if (!ok) || response.IsReject() { //如果注册中心不可连接或是拒绝了连接请求
 		defer func() { recover() }()
 		p.stoppedChan <- true
 		close(p.stoppedChan)

@@ -31,17 +31,17 @@ func newHeart(registrant *Registrant, retryNController RetryNController, Request
 }
 
 //For the struct beater
-func (h *heart) register(response protocol.Response) protocol.TobeSendRequest {
-	request := h.registrant.register(response)
-	if response.IsReject() {
-		h.RegistryInfo = nil
+func (h *heart) register(response protocol.Response) (protocol.TobeSendRequest, bool) {
+	request, ok := h.registrant.register(response)
+	if (!ok) || response.IsReject() { //如果不可响应或是拒绝连接
+		h.RegistryInfo = nil //就清空已连接记录
 	} else {
-		h.RegistryInfo = response.RegistryInfo
+		h.RegistryInfo = response.RegistryInfo //否则写入已连接记录
 	}
 	return protocol.TobeSendRequest{
 		Request: request,
 		Option:  response.RegistryInfo.GetRequestSendOption(),
-	}
+	}, ok
 }
 
 func (h *heart) RunBeating(initRequest protocol.TobeSendRequest, initTimeout time.Duration, initRetryN uint64) error {

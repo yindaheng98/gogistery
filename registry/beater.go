@@ -9,7 +9,14 @@ type beater struct {
 }
 
 func (p *beater) Beat(request protocol.Request) protocol.TobeSendResponse {
-	if timeout, ok := p.registry.register(request); ok {
+	if p.registry.Info.GetServiceType() != request.RegistrantInfo.GetServiceType() { //类型检查不通过则拒绝连接
+		return protocol.TobeSendResponse{
+			Response: protocol.Response{
+				RegistryInfo: p.registry.Info,
+				Timeout:      0,
+				Reject:       true}, //拒绝连接
+			Option: request.RegistrantInfo.GetResponseSendOption()}
+	} else if timeout, ok := p.registry.register(request); ok {
 		return protocol.TobeSendResponse{
 			Response: protocol.Response{
 				RegistryInfo: p.registry.Info,

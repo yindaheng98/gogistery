@@ -57,7 +57,8 @@ const CLIENTN = 30
 func RegistrantTest(t *testing.T, i int) {
 	proto := ExampleProtocol.NewChanNetRequestProtocol()
 	info := ExampleProtocol.RegistrantInfo{
-		ID:     fmt.Sprintf("REGISTRANT_%02d", i),
+		ID: fmt.Sprintf("REGISTRANT_%02d", i),
+		//Type:   "XXX", //模拟类型不一样时的连接拒绝过程
 		Option: ExampleProtocol.ResponseSendOption{},
 	}
 	r := NewRegistrant(info, 5,
