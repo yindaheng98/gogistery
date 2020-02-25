@@ -18,16 +18,28 @@ type heart struct {
 func newHeart(registrant *Registrant, retryNController RetryNController, RequestProto protocol.RequestProtocol) *heart {
 	stoppedChan := make(chan bool, 1)
 	close(stoppedChan)
-	heart := &heart{
+	h := &heart{
 		Heart:        nil,
 		beater:       nil,
 		registrant:   registrant,
 		RegistryInfo: nil,
 		stoppedChan:  stoppedChan,
 	}
-	heart.beater = newBeater(heart, retryNController)
-	heart.Heart = requester.NewHeart(heart.beater, RequestProto)
-	return heart
+	h.beater = newBeater(h, retryNController)
+	h.Heart = requester.NewHeart(h.beater, RequestProto)
+	h.Handlers.NewConnectionHandler = func(response protocol.Response) {
+		registrant.Events.NewConnection.Emit(response.RegistryInfo)
+	}
+	h.Handlers.RetryHandler = func(request protocol.TobeSendRequest, err error) {
+		registrant.Events.Retry.Emit(request, err)
+	}
+	h.Handlers.UpdateConnectionHandler = func(response protocol.Response) {
+		registrant.Events.UpdateConnection.Emit(response.RegistryInfo)
+	}
+	h.Handlers.DisconnectionHandler = func(request protocol.TobeSendRequest, err error) {
+		registrant.Events.Disconnection.Emit(request, err)
+	}
+	return h
 }
 
 //For the struct beater
