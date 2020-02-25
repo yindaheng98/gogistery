@@ -18,7 +18,7 @@ func newEvents() *events {
 		emitters.NewRegistryInfoEmitter(),
 		emitters.NewRegistryInfoEmitter(),
 		emitters.NewTobeSendRequestErrorEmitter(),
-		Emitter.NewErrorEmitter(),
+		Emitter.NewSyncErrorEmitter(),
 		emitters.NewTobeSendRequestErrorEmitter()}
 }
 

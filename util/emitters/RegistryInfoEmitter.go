@@ -6,11 +6,11 @@ import (
 )
 
 type RegistryInfoEmitter struct {
-	*Emitter.Emitter
+	Emitter.Emitter
 }
 
 func NewRegistryInfoEmitter() *RegistryInfoEmitter {
-	return &RegistryInfoEmitter{Emitter.NewEmitter()}
+	return &RegistryInfoEmitter{Emitter.NewSyncEmitter()}
 }
 
 func (e *RegistryInfoEmitter) AddHandler(handler func(info protocol.RegistryInfo)) {
