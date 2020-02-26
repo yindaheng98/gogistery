@@ -7,11 +7,12 @@ import (
 	"github.com/yindaheng98/gogistry/heart/responser"
 	"github.com/yindaheng98/gogistry/protocol"
 	"math/rand"
+	"sync"
 	"testing"
 	"time"
 )
 
-func ChanNetRequesterHeartTest(t *testing.T, RegistrantID string, initAddr string) {
+func ChanNetRequesterHeartTest(t *testing.T, RegistrantID string, initAddr string, wg *sync.WaitGroup) {
 	s := fmt.Sprintf("--ChanNetRequesterHeartTest(RegistrantID:%s,initAddr:%s)-->", RegistrantID, initAddr)
 	info := ExampleProtocol.RegistrantInfo{
 		ID:     RegistrantID,
@@ -37,18 +38,19 @@ func ChanNetRequesterHeartTest(t *testing.T, RegistrantID string, initAddr strin
 		err := heart.RunBeating(protocol.TobeSendRequest{
 			Request: protocol.Request{RegistrantInfo: info, Disconnect: false},
 			Option:  ExampleProtocol.RequestSendOption{RequestAddr: initAddr, Timestamp: time.Now()},
-		}, 10e9, 10)
+		}, 1e9, 3)
 		if err != nil {
 			t.Log(s+"RequesterHeart stopped with error: %s.", err.Error())
 		} else {
 			t.Log(s + "RequesterHeart stopped normally.")
 		}
+		wg.Done()
 	}()
 }
 
 const TEST_TIMEOUT = 1e9
 
-func ChanNetResponserHeartTest(t *testing.T, RegistryID string) string {
+func ChanNetResponserHeartTest(t *testing.T, RegistryID string, wg *sync.WaitGroup) string {
 	s := fmt.Sprintf("--ChanNetRequesterHeartTest(RegistryID:%s)-->", RegistryID)
 	proto := ExampleProtocol.NewChanNetResponseProtocol()
 	info := ExampleProtocol.RegistryInfo{
@@ -68,6 +70,7 @@ func ChanNetResponserHeartTest(t *testing.T, RegistryID string) string {
 		go heart.RunBeating()
 		time.Sleep(1e9)
 		heart.Stop()
+		wg.Done()
 	}()
 	return proto.GetAddr()
 }
@@ -77,11 +80,16 @@ const RESPONSERN = 10
 
 func TestChanNetHeart(t *testing.T) {
 	responsers := make([]string, RESPONSERN)
+	responsersWG := new(sync.WaitGroup)
+	responsersWG.Add(RESPONSERN)
 	for i := 0; i < RESPONSERN; i++ {
-		responsers[i] = ChanNetResponserHeartTest(t, fmt.Sprintf("RESPONSER_%02d", i))
+		responsers[i] = ChanNetResponserHeartTest(t, fmt.Sprintf("RESPONSER_%02d", i), responsersWG)
 	}
+	requestersWG := new(sync.WaitGroup)
+	requestersWG.Add(REQUESTERN)
 	for i := 0; i < REQUESTERN; i++ {
-		ChanNetRequesterHeartTest(t, fmt.Sprintf("REQUESTER_%02d", i), responsers[rand.Intn(RESPONSERN)])
+		ChanNetRequesterHeartTest(t, fmt.Sprintf("REQUESTER_%02d", i), responsers[rand.Intn(RESPONSERN)], requestersWG)
 	}
-	time.Sleep(8e9)
+	responsersWG.Wait()
+	requestersWG.Wait()
 }
