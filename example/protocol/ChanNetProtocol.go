@@ -15,10 +15,10 @@ func NewChanNetRequestProtocol() ChanNetRequestProtocol {
 }
 
 func (proto ChanNetRequestProtocol) Request(requestChan <-chan protocol.TobeSendRequest, responseChan chan<- protocol.ReceivedResponse) {
-	defer func() { recover() }()
 	r := <-requestChan
 	request, option := r.Request, r.Option.(RequestSendOption)
 	response, err := ChanNet.Request(option.RequestAddr, request)
+	defer func() { recover() }()
 	responseChan <- protocol.ReceivedResponse{Response: response, Error: err}
 }
 
@@ -33,8 +33,8 @@ func (proto ChanNetResponseProtocol) GetAddr() string {
 	return proto.addr
 }
 func (proto ChanNetResponseProtocol) Response(requestChan chan<- protocol.ReceivedRequest, responseChan <-chan protocol.TobeSendResponse) {
-	defer func() { recover() }()
 	request, err, respChan := ChanNet.Response(proto.addr)
+	defer func() { recover() }()
 	requestChan <- protocol.ReceivedRequest{Request: request, Error: err}
 	response, ok := <-responseChan
 	if ok {
