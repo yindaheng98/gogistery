@@ -26,8 +26,8 @@ func ChanNetRequesterHeartTest(t *testing.T, RegistrantID string, initAddr strin
 	heart.Handlers.UpdateConnectionHandler = func(info protocol.Response) {
 		t.Log(s + fmt.Sprintf("Update Connection-->%s", info.String()))
 	}
-	heart.Handlers.DisconnectionHandler = func(request protocol.TobeSendRequest, err error) {
-		t.Log(s + fmt.Sprintf("Disonnection-->%s,%s", err, request.String()))
+	heart.Handlers.DisconnectionHandler = func(response protocol.Response, err error) {
+		t.Log(s + fmt.Sprintf("Disonnection-->%s,%s", err, response.String()))
 	}
 	heart.Handlers.RetryHandler = func(o protocol.TobeSendRequest, err error) {
 		t.Log(s + fmt.Sprintf("A request %s retryed because %s", o.String(), err.Error()))

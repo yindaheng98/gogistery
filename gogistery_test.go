@@ -95,9 +95,9 @@ func RegistrantTest(t *testing.T, i int) {
 		t.Log(fmt.Sprintf("RegistrantTest:%s--NewConnection--%s", info.GetRegistrantID(), i.GetRegistryID()))
 	})
 	r.Events.NewConnection.Enable()
-	r.Events.Disconnection.AddHandler(func(request protocol.TobeSendRequest, err error) {
+	r.Events.Disconnection.AddHandler(func(i protocol.RegistryInfo, err error) {
 		t.Log(fmt.Sprintf("RegistrantTest:%s--Disconnection--%s. error:%s",
-			info.GetRegistrantID(), request.Option.String(), err))
+			info.GetRegistrantID(), i.GetRegistryID(), err))
 	})
 	r.Events.Disconnection.Enable()
 	r.Events.Error.AddHandler(func(err error) {

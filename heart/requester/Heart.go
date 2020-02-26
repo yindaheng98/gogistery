@@ -23,20 +23,23 @@ func NewHeart(beater HeartBeater, RequestProto protocol.RequestProtocol) *Heart 
 //开始心跳，直到最后由协议主动停止心跳或出错才返回
 func (h *Heart) RunBeating(initRequest protocol.TobeSendRequest, initTimeout time.Duration, initRetryN uint64) error {
 	request, Timeout, RetryN := initRequest, initTimeout, initRetryN
-	var err error = nil
 	established := false
+	var lastResponse protocol.Response
+	var err error = nil
 	defer func() {
 		if established {
-			h.Handlers.DisconnectionHandler(request, err)
+			h.Handlers.DisconnectionHandler(lastResponse, err)
 		}
 	}()
 	run := true
 	for run {
 		timeout, retryN := Timeout, RetryN
-		response, err := h.requester.Send(request, &timeout, &retryN)
+		var response protocol.Response
+		response, err = h.requester.Send(request, &timeout, &retryN)
 		if err != nil {
 			return err
 		}
+		lastResponse = response
 		if established { //如果已经达成过连接就触发更新事件
 			h.Handlers.UpdateConnectionHandler(response)
 		}

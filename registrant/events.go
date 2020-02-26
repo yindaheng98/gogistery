@@ -8,7 +8,7 @@ import (
 type events struct {
 	NewConnection    *emitters.RegistryInfoEmitter
 	UpdateConnection *emitters.RegistryInfoEmitter
-	Disconnection    *emitters.TobeSendRequestErrorEmitter
+	Disconnection    *emitters.RegistryInfoErrorEmitter
 	Error            *Emitter.ErrorEmitter
 	Retry            *emitters.TobeSendRequestErrorEmitter
 }
@@ -17,7 +17,7 @@ func newEvents() *events {
 	return &events{
 		emitters.NewRegistryInfoEmitter(),
 		emitters.NewRegistryInfoEmitter(),
-		emitters.NewTobeSendRequestErrorEmitter(),
+		emitters.NewRegistryInfoErrorEmitter(),
 		Emitter.NewSyncErrorEmitter(),
 		emitters.NewTobeSendRequestErrorEmitter()}
 }

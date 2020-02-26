@@ -7,13 +7,15 @@ import (
 type handlers struct {
 	NewConnectionHandler    func(protocol.Response)
 	UpdateConnectionHandler func(protocol.Response)
-	DisconnectionHandler    func(protocol.TobeSendRequest, error)
+	DisconnectionHandler    func(protocol.Response, error)
 	RetryHandler            func(protocol.TobeSendRequest, error)
 }
 
 func newEvents() *handlers {
-	return &handlers{func(protocol.Response) {},
+	return &handlers{
 		func(protocol.Response) {},
+		func(protocol.Response) {},
+		func(protocol.Response, error) {},
 		func(protocol.TobeSendRequest, error) {},
-		func(protocol.TobeSendRequest, error) {}}
+	}
 }

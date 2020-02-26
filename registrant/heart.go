@@ -36,8 +36,8 @@ func newHeart(registrant *Registrant, retryNController RetryNController, Request
 	h.Handlers.UpdateConnectionHandler = func(response protocol.Response) {
 		registrant.Events.UpdateConnection.Emit(response.RegistryInfo)
 	}
-	h.Handlers.DisconnectionHandler = func(request protocol.TobeSendRequest, err error) {
-		registrant.Events.Disconnection.Emit(request, err)
+	h.Handlers.DisconnectionHandler = func(response protocol.Response, err error) {
+		registrant.Events.Disconnection.Emit(response.RegistryInfo, err)
 	}
 	return h
 }
