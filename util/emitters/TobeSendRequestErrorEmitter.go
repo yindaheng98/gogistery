@@ -9,8 +9,12 @@ type TobeSendRequestErrorEmitter struct {
 	*Emitter.ErrorInfoEmitter
 }
 
-func NewTobeSendRequestErrorEmitter() *TobeSendRequestErrorEmitter {
+func NewSyncTobeSendRequestErrorEmitter() *TobeSendRequestErrorEmitter {
 	return &TobeSendRequestErrorEmitter{Emitter.NewSyncErrorInfoEmitter()}
+}
+
+func NewAsyncTobeSendRequestErrorEmitter() *TobeSendRequestErrorEmitter {
+	return &TobeSendRequestErrorEmitter{Emitter.NewAsyncErrorInfoEmitter()}
 }
 
 func (e *TobeSendRequestErrorEmitter) AddHandler(handler func(protocol.TobeSendRequest, error)) {
