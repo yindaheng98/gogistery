@@ -101,13 +101,9 @@ func (r *Registrant) heartRoutine(h *heart, i int, connChan chan []protocol.Regi
 				except = append(except, c)
 			}
 		}
-		excepts := <-r.CandidateBlacklist //取不可连接列表
-		for _, c := range excepts {       //去除空项
-			if c != nil {
-				except = append(except, c)
-			}
-		}
-		r.CandidateBlacklist <- excepts
+		blacklist := <-r.CandidateBlacklist //取不可连接列表
+		except = append(except, blacklist...)
+		r.CandidateBlacklist <- blacklist
 
 		var initRegistryInfo protocol.RegistryInfo
 		var initTimeout time.Duration
