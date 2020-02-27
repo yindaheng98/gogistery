@@ -25,19 +25,22 @@ func (p *beater) Start() {
 	p.stoppedChan = make(chan bool, 1)
 }
 func (p *beater) Stop() {
-	defer func() { recover() }()
-	p.stopChan <- true //发送停止信息
-	<-p.stoppedChan    //等待已停止信息
-	close(p.stopChan)  //关闭停止信息通道
+	func() {
+		defer func() { recover() }()
+		close(p.stopChan) //发送停止信息
+	}()
+	//<-p.stoppedChan //等待已停止信息，导致死锁，原因未知
 }
 func (p *beater) Beat(response protocol.Response, lastTimeout time.Duration, lastRetryN uint64, beat func(protocol.TobeSendRequest, time.Duration, uint64)) {
 	request, ok := p.heart.register(response)
-	if (!ok) || response.IsReject() { //如果注册中心不可连接或是拒绝了连接请求
-		defer func() { recover() }()
-		p.stoppedChan <- true
-		close(p.stoppedChan)
-		close(p.stopChan)
-		return //就直接断连退出
+	select {
+	case <-p.stoppedChan: //如果已断连
+		return //就直接退出
+	default:
+		if (!ok) || response.IsReject() { //如果注册中心不可连接或是拒绝了连接请求
+			close(p.stoppedChan) //就先发送已停止信息
+			return               //再直接断连退出
+		}
 	}
 	waitTime, sendTimeout, retryN := p.retryNController.GetWaitTimeoutRetryN(response, lastTimeout, lastRetryN)
 	select {
@@ -47,10 +50,6 @@ func (p *beater) Beat(response protocol.Response, lastTimeout time.Duration, las
 	case <-p.stopChan: //突然要求停机
 		request.Request.Disconnect = true //那就发送断连信号
 		beat(request, sendTimeout, retryN)
-		p.stoppedChan <- true //发送已断连标志位
-		defer func() { recover() }()
-		close(p.stoppedChan)
-	case <-p.stoppedChan: //如果已断连
-		return //就直接退出
+		close(p.stoppedChan) //发送已断连标志位
 	}
 }

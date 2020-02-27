@@ -8,6 +8,7 @@ import (
 	"github.com/yindaheng98/gogistry/util/RetryNController"
 	"github.com/yindaheng98/gogistry/util/TimeoutController"
 	"math/rand"
+	"sync"
 	"testing"
 	"time"
 )
@@ -15,7 +16,7 @@ import (
 var RegistryInfos = make(map[string]ExampleProtocol.RegistryInfo)
 var LastRegistryInfo protocol.RegistryInfo
 
-func RegistryTest(t *testing.T) {
+func RegistryTest(t *testing.T, wg *sync.WaitGroup) {
 	proto := ExampleProtocol.NewChanNetResponseProtocol()
 	info := ExampleProtocol.RegistryInfo{
 		ID: "REGISTRY_" + proto.GetAddr(),
@@ -48,6 +49,7 @@ func RegistryTest(t *testing.T) {
 	go func() {
 		time.Sleep(15e9)
 		r.Stop()
+		wg.Done()
 		t.Log(fmt.Sprintf("%s stopped manually.", info.ID))
 	}()
 }
@@ -80,7 +82,7 @@ func (p *TestPINGer) PING(info protocol.RegistryInfo) bool {
 	return uint8(r) >= p.failRate
 }
 
-func RegistrantTest(t *testing.T, i int) {
+func RegistrantTest(t *testing.T, i int, wg *sync.WaitGroup) {
 	proto := ExampleProtocol.NewChanNetRequestProtocol()
 	info := ExampleProtocol.RegistrantInfo{
 		ID: fmt.Sprintf("REGISTRANT_%02d", i),
@@ -111,17 +113,23 @@ func RegistrantTest(t *testing.T, i int) {
 	go func() {
 		time.Sleep(10e9)
 		r.Stop()
+		wg.Done()
 		t.Log(fmt.Sprintf("%s stopped manually.", info.ID))
 	}()
 }
 
 func TestRegistryRegistrant(t *testing.T) {
+	wgRegistry := new(sync.WaitGroup)
+	wgRegistry.Add(SERVERN)
 	for i := 0; i < SERVERN; i++ {
-		RegistryTest(t)
+		RegistryTest(t, wgRegistry)
 	}
 	time.Sleep(1e9)
+	wgRegistrant := new(sync.WaitGroup)
+	wgRegistrant.Add(CLIENTN)
 	for i := 0; i < CLIENTN; i++ {
-		RegistrantTest(t, i)
+		RegistrantTest(t, i, wgRegistrant)
 	}
-	time.Sleep(20e9)
+	wgRegistry.Wait()
+	wgRegistrant.Wait()
 }
