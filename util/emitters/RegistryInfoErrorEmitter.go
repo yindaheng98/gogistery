@@ -10,7 +10,7 @@ type RegistryInfoErrorEmitter struct {
 }
 
 func NewRegistryInfoErrorEmitter() *RegistryInfoErrorEmitter {
-	return &RegistryInfoErrorEmitter{Emitter.NewSyncErrorInfoEmitter()}
+	return &RegistryInfoErrorEmitter{Emitter.NewAsyncErrorInfoEmitter()}
 }
 
 func (e *RegistryInfoErrorEmitter) AddHandler(handler func(info protocol.RegistryInfo, err error)) {

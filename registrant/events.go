@@ -19,7 +19,7 @@ func newEvents() *events {
 		emitters.NewRegistryInfoEmitter(),
 		emitters.NewRegistryInfoErrorEmitter(),
 		Emitter.NewSyncErrorEmitter(),
-		emitters.NewSyncTobeSendRequestErrorEmitter()}
+		emitters.NewAsyncTobeSendRequestErrorEmitter()}
 }
 
 func (e *events) EnableAll() {

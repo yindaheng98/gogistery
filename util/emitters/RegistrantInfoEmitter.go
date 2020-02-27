@@ -10,7 +10,7 @@ type RegistrantInfoEmitter struct {
 }
 
 func NewRegistrantInfoEmitter() *RegistrantInfoEmitter {
-	return &RegistrantInfoEmitter{Emitter.NewSyncEmitter()}
+	return &RegistrantInfoEmitter{Emitter.NewAsyncEmitter()}
 }
 
 func (e *RegistrantInfoEmitter) AddHandler(handler func(info protocol.RegistrantInfo)) {
