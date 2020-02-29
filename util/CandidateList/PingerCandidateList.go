@@ -88,11 +88,11 @@ func (list *PingerCandidateList) ping(el element) {
 	list.pingingList <- pingingList
 }
 
-func (list *PingerCandidateList) StoreCandidates(response protocol.Response) {
+func (list *PingerCandidateList) StoreCandidates(candidates []protocol.RegistryInfo) {
 	set := <-list.set
 	defer func() { list.set <- set }()
 	set.DeltaUpdateAll(-1)
-	for _, info := range response.RegistryInfo.GetCandidates() { //遍历候选元素
+	for _, info := range candidates { //遍历候选元素
 		el := element{info}
 		if w, ok := set.GetWeight(el); ok { //如果已存在
 			set.Update(el, w) //则只更新元素内容

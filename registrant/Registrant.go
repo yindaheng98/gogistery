@@ -42,7 +42,7 @@ func New(Info protocol.RegistrantInfo, regitryN uint, CandidateList RegistryCand
 //For the struct heart
 func (r *Registrant) register(response protocol.Response) (protocol.Request, bool) {
 	if response.RegistryInfo.GetServiceType() == r.Info.GetServiceType() { //如果类型相同
-		r.candidates.StoreCandidates(response) //就注册
+		r.candidates.StoreCandidates(response.RegistryInfo.GetCandidates()) //就注册
 		return protocol.Request{
 			RegistrantInfo: r.Info,
 			Disconnect:     response.IsReject(),
@@ -155,4 +155,8 @@ func (r *Registrant) GetConnections() []protocol.RegistryInfo {
 		}
 	}
 	return res
+}
+
+func (r *Registrant) AddCandidates(candidates []protocol.RegistryInfo) {
+	r.candidates.StoreCandidates(candidates)
 }

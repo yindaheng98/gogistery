@@ -26,7 +26,7 @@ func NewSimpleCandidateList(size uint64, initRegistry protocol.RegistryInfo, ini
 	return list
 }
 
-func (list *SimpleCandidateList) StoreCandidates(response protocol.Response) {
+func (list *SimpleCandidateList) StoreCandidates(candidates []protocol.RegistryInfo) {
 	set := <-list.set
 	defer func() {
 		list.set <- set                  //完成后放回队列
@@ -34,7 +34,6 @@ func (list *SimpleCandidateList) StoreCandidates(response protocol.Response) {
 		list.waitGroup = make(chan bool) //然后再阻塞之
 	}()
 	set.DeltaUpdateAll(-1) //先让所有元素优先级下降1
-	candidates := response.RegistryInfo.GetCandidates()
 	for _, candidate := range candidates {
 		el := element{candidate}
 		if _, exists := set.GetWeight(el); exists {
