@@ -17,8 +17,8 @@ type chanPairServer struct {
 }
 
 func (s *chanPairServer) Request(ctx context.Context, request protocol.Request) (protocol.Response, error) {
-	requestChan := make(chan protocol.Request)
-	responseChan := make(chan protocol.Response)
+	requestChan := make(chan protocol.Request, 1)
+	responseChan := make(chan protocol.Response, 1)
 	s.processChan <- chanPair{ctx: ctx, requestChan: requestChan, responseChan: responseChan}
 	requestChan <- request
 	select {

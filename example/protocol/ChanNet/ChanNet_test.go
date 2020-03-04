@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/yindaheng98/gogistry/protocol"
 	"math/rand"
+	"sync"
 	"testing"
 	"time"
 )
@@ -132,11 +133,14 @@ func TestChanNet(t *testing.T) {
 		addrs[i] = chanNet.NewServer()
 		reqN[i] = 0
 	}
+	wg := new(sync.WaitGroup)
+	wg.Add(TESTREQN * 2)
 	ctx, cancel := context.WithTimeout(context.Background(), 1e9)
 	for i := 0; i < TESTREQN; i++ { //发送指定数量个请求
 		reqi := rand.Intn(TESTADDRN) //随机选择向谁发
 		reqN[reqi] += 1              //记录请求发送次数
 		go func(i int) {
+			defer wg.Done()
 			timeoutCtx, cancel := context.WithTimeout(ctx, 1e8)
 			defer cancel()
 			RequestTest(t, timeoutCtx, addrs[reqi], chanNet, i)
@@ -145,6 +149,7 @@ func TestChanNet(t *testing.T) {
 	for i := 0; i < TESTADDRN; i++ { //每个服务器都执行响应操作
 		for j := reqN[i]; j > 0; j-- {
 			go func(i int) {
+				defer wg.Done()
 				timeoutCtx, cancel := context.WithTimeout(ctx, 1e9)
 				defer cancel()
 				ResponseTest(t, timeoutCtx, addrs[i], chanNet)
@@ -153,6 +158,6 @@ func TestChanNet(t *testing.T) {
 	}
 	time.Sleep(1e8)
 	//cancel()
-	time.Sleep(1e9)
+	wg.Wait()
 	cancel()
 }
