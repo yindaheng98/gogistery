@@ -7,17 +7,15 @@ import (
 )
 
 type Heart struct {
-	beater      HeartBeater
-	requester   *requester
-	Handlers    *handlers
-	startedChan chan bool //启动时关闭此通道
+	beater    HeartBeater
+	requester *requester
+	Handlers  *handlers
 }
 
 func NewHeart(beater HeartBeater, RequestProto protocol.RequestProtocol) *Heart {
 	heart := &Heart{beater,
 		newRequester(RequestProto),
-		newEvents(),
-		make(chan bool, 1)}
+		newEvents()}
 	heart.requester.RetryHandler = func(request protocol.TobeSendRequest, err error) {
 		heart.Handlers.RetryHandler(request, err)
 	}
@@ -27,8 +25,6 @@ func NewHeart(beater HeartBeater, RequestProto protocol.RequestProtocol) *Heart 
 //开始心跳，直到最后由协议主动停止心跳或出错才返回
 func (h *Heart) RunBeating(ctx context.Context,
 	initRequest protocol.TobeSendRequest, initTimeout time.Duration, initRetryN uint64) error {
-	defer func() { recover() }()
-	close(h.startedChan) //如果此通道被关闭，则说明已有一个RunBeating在运行，会直接退出
 	request, Timeout, RetryN := initRequest, initTimeout, initRetryN
 	established := false
 	var lastResponse protocol.Response
