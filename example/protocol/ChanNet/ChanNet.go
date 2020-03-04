@@ -1,6 +1,7 @@
 package ChanNet
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/yindaheng98/gogistry/protocol"
@@ -27,7 +28,7 @@ func (n *ChanNet) NewServer() string {
 	return addr
 }
 
-func (n *ChanNet) Request(addr string, request protocol.Request) (protocol.Response, error) {
+func (n *ChanNet) Request(ctx context.Context, addr string, request protocol.Request) (protocol.Response, error) {
 	s := "(ChanNet.Request)->"
 	s += fmt.Sprintf("A request %s is transmitting to server in address '%s'. ", request.String(), addr)
 	defer func() { fmt.Print(s + "\n") }()
@@ -44,16 +45,19 @@ func (n *ChanNet) Request(addr string, request protocol.Request) (protocol.Respo
 	timeout := rand.New(n.src).Int63n(int64(n.MaxTimeout))
 	s += fmt.Sprintf("This transmition will arrived in %f second. ", float64(timeout)/1e9)
 	time.Sleep(time.Duration(timeout))
-	return server.Request(request), nil
+	return server.Request(ctx, request)
 }
 
-func (n *ChanNet) Response(addr string) (protocol.Request, error, chan<- protocol.Response) {
+func (n *ChanNet) Response(ctx context.Context, addr string) (protocol.Request, error, chan<- protocol.Response) {
 	s := "(ChanNet.Response)->"
 	server, exists := n.servers[addr]
 	if !exists {
 		return protocol.Request{}, errors.New(fmt.Sprintf("addr '%s' not exists", addr)), nil
 	}
-	request, responseChan := server.Response()
+	request, err, responseChan := server.Response(ctx)
+	if err != nil {
+		return request, err, responseChan
+	}
 	s += fmt.Sprintf("A request %s was arrived at server in address '%s'", request.String(), addr)
 	defer func() { fmt.Print(s + "\n") }()
 	failN := rand.New(n.src).Intn(100)

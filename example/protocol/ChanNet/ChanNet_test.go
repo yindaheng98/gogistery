@@ -1,6 +1,7 @@
 package ChanNet
 
 import (
+	"context"
 	"fmt"
 	"github.com/yindaheng98/gogistry/protocol"
 	"math/rand"
@@ -73,7 +74,7 @@ func (info TestRegistryInfo) String() string {
 		info.ID, info.Type, info.Option.String(), Candidates)
 }
 
-func RequestTest(t *testing.T, addr string, chanNet *ChanNet, i int) {
+func RequestTest(t *testing.T, ctx context.Context, addr string, chanNet *ChanNet, i int) {
 	request := protocol.Request{
 		RegistrantInfo: TestRegistrantInfo{
 			ID:   fmt.Sprintf("Registrant_%s", addr),
@@ -85,7 +86,7 @@ func RequestTest(t *testing.T, addr string, chanNet *ChanNet, i int) {
 		},
 		Disconnect: false,
 	}
-	response, err := chanNet.Request(addr, request)
+	response, err := chanNet.Request(ctx, addr, request)
 	s := "(RequestTest)"
 	s += fmt.Sprintf("Request sent to '%s': %s, ", addr, request.String())
 	if err != nil {
@@ -95,8 +96,8 @@ func RequestTest(t *testing.T, addr string, chanNet *ChanNet, i int) {
 	}
 }
 
-func ResponseTest(t *testing.T, addr string, chanNet *ChanNet) {
-	request, err, responseChan := chanNet.Response(addr)
+func ResponseTest(t *testing.T, ctx context.Context, addr string, chanNet *ChanNet) {
+	request, err, responseChan := chanNet.Response(ctx, addr)
 	s := "(ResponseTest)"
 	if err != nil {
 		t.Log(s + fmt.Sprintf("An error occurred: %s", err.Error()))
@@ -131,19 +132,27 @@ func TestChanNet(t *testing.T) {
 		addrs[i] = chanNet.NewServer()
 		reqN[i] = 0
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), 1e9)
 	for i := 0; i < TESTREQN; i++ { //发送指定数量个请求
 		reqi := rand.Intn(TESTADDRN) //随机选择向谁发
 		reqN[reqi] += 1              //记录请求发送次数
-		go func(testi int) {
-			RequestTest(t, addrs[reqi], chanNet, testi)
+		go func(i int) {
+			timeoutCtx, cancel := context.WithTimeout(ctx, 1e8)
+			defer cancel()
+			RequestTest(t, timeoutCtx, addrs[reqi], chanNet, i)
 		}(i)
 	}
 	for i := 0; i < TESTADDRN; i++ { //每个服务器都执行响应操作
 		for j := reqN[i]; j > 0; j-- {
-			go func(addri int) {
-				ResponseTest(t, addrs[addri], chanNet)
+			go func(i int) {
+				timeoutCtx, cancel := context.WithTimeout(ctx, 1e9)
+				defer cancel()
+				ResponseTest(t, timeoutCtx, addrs[i], chanNet)
 			}(i)
 		}
 	}
+	time.Sleep(1e8)
+	//cancel()
 	time.Sleep(1e9)
+	cancel()
 }
