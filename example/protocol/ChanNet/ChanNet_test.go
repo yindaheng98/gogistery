@@ -141,7 +141,7 @@ func TestChanNet(t *testing.T) {
 		reqN[reqi] += 1              //记录请求发送次数
 		go func(i int) {
 			defer wg.Done()
-			timeoutCtx, cancel := context.WithTimeout(ctx, 1e8)
+			timeoutCtx, cancel := context.WithTimeout(ctx, 1e9)
 			defer cancel()
 			RequestTest(t, timeoutCtx, addrs[reqi], chanNet, i)
 		}(i)

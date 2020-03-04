@@ -16,29 +16,40 @@ type chanPairServer struct {
 	processChan chan chanPair
 }
 
-func (s *chanPairServer) Request(ctx context.Context, request protocol.Request) (protocol.Response, error) {
+func (s *chanPairServer) Request(ctx context.Context, request protocol.Request) (r protocol.Response, e error) {
 	requestChan := make(chan protocol.Request, 1)
 	responseChan := make(chan protocol.Response, 1)
-	s.processChan <- chanPair{ctx: ctx, requestChan: requestChan, responseChan: responseChan}
+	e = errors.New("exited by context")
+	select {
+	case s.processChan <- chanPair{ctx: ctx, requestChan: requestChan, responseChan: responseChan}:
+	case <-ctx.Done():
+		return
+	}
 	requestChan <- request
 	select {
 	case response := <-responseChan:
 		return response, nil
 	case <-ctx.Done():
-		return protocol.Response{}, errors.New("exited by context")
+		return
 	}
 }
 
-func (s *chanPairServer) Response(ctx context.Context) (protocol.Request, error, chan<- protocol.Response) {
-	pair := <-s.processChan
+func (s *chanPairServer) Response(ctx context.Context) (r protocol.Request, e error, c chan<- protocol.Response) {
+	var pair chanPair
+	e = errors.New("exited by context")
+	select {
+	case pair = <-s.processChan:
+	case <-ctx.Done():
+		return
+	}
 	requestChan, responseChan := pair.requestChan, pair.responseChan
 	select {
 	case request := <-requestChan:
 		return request, nil, responseChan
 	case <-pair.ctx.Done():
-		return protocol.Request{}, errors.New("exited by requester's context"), responseChan
+		e = errors.New("exited by requester's context")
+		return
 	case <-ctx.Done():
-		return protocol.Request{}, errors.New("exited by context"), responseChan
-
+		return
 	}
 }
