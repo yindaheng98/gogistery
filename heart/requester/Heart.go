@@ -51,8 +51,10 @@ func (h *Heart) RunBeating(ctx context.Context,
 			if err != nil {
 				return err
 			}
-		case <-ctx.Done():
-			return errors.New("exited by context")
+		case <-ctx.Done(): //被要求退出
+			request.Request.Disconnect = true //就发送断连信号
+			_, _, _, _ = h.requester.Send(context.Background(), request, Timeout, RetryN)
+			return errors.New("exited by context") //发完再退出
 		}
 		lastResponse = response
 		if established { //如果已经达成过连接就触发更新事件
