@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"context"
 	"github.com/yindaheng98/go-utility/TimeoutMap"
 	"github.com/yindaheng98/gogistry/heart/responser"
 	"github.com/yindaheng98/gogistry/protocol"
@@ -39,14 +40,8 @@ func New(Info protocol.RegistryInfo, maxRegistrants uint, timeoutController Time
 	return registry
 }
 
-//启动直到调用停止才退出
-func (r *Registry) Run() {
-	r.heart.RunBeating()
-}
-
-//停止
-func (r *Registry) Stop() {
-	r.heart.Stop()
+func (r *Registry) Run(ctx context.Context) {
+	r.heart.RunBeating(ctx)
 }
 
 //获取当前所有活动连接
@@ -67,7 +62,7 @@ func (r *Registry) register(request protocol.Request) (time.Duration, bool) {
 	defer r.timeoutMapMu.Unlock()
 	if request.IsDisconnect() { //如果主动断开连接
 		r.timeoutMap.Delete(registrantID) //则直接删除
-		return 0, false
+		return 3600 * 24 * 1e9, false     //直接拒绝连接
 	}
 	var timeout time.Duration
 	var exists bool
@@ -76,7 +71,7 @@ func (r *Registry) register(request protocol.Request) (time.Duration, bool) {
 	} else if r.timeoutMap.Count() < r.maxRegistrants { //如果连接不存在但可以接受新连接
 		timeout = r.timeoutController.TimeoutForNew(request) //则获取新建的timeout
 	} else { //如果连接不存在且又不能接受新连接
-		return 0, false //直接拒绝连接
+		return 3600 * 24 * 1e9, false //拒绝，让对方明天再来
 	}
 	r.timeoutMap.UpdateInfo(
 		registrantTimeoutType{request.RegistrantInfo, r.Events}, timeout) //更新连接

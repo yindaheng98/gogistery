@@ -6,50 +6,28 @@ import (
 )
 
 type beater struct {
-	heart            *heart //此协议服务于哪个heart
+	registrant       *Registrant //此协议服务于哪个heart
 	retryNController RetryNController
-	stopChan         chan bool
-	stoppedChan      chan bool
+	i                uint64 //此协议编号
 }
 
-func newBeater(heart *heart, requestController RetryNController) *beater {
-	stopChan := make(chan bool, 1)
-	stoppedChan := make(chan bool, 1)
-	close(stopChan)
-	close(stoppedChan)
-	return &beater{heart, requestController, stopChan, stoppedChan}
-}
-func (p *beater) Start() {
-	p.Stop() //启动前必须先停止
-	p.stopChan = make(chan bool, 1)
-	p.stoppedChan = make(chan bool, 1)
-}
-func (p *beater) Stop() {
-	func() {
-		defer func() { recover() }()
-		close(p.stopChan) //发送停止信息
-	}()
-	//<-p.stoppedChan //等待已停止信息，导致死锁，原因未知
+func newBeater(registrant *Registrant, retryNController RetryNController, i uint64) *beater {
+	return &beater{registrant, retryNController, i}
 }
 func (p *beater) Beat(response protocol.Response, lastTimeout time.Duration, lastRetryN uint64, beat func(protocol.TobeSendRequest, time.Duration, uint64)) {
-	request, ok := p.heart.register(response)
-	select {
-	case <-p.stoppedChan: //如果已断连
-		return //就直接退出
-	default:
-		if (!ok) || response.IsReject() { //如果注册中心不可连接或是拒绝了连接请求
-			close(p.stoppedChan) //就先发送已停止信息
-			return               //再直接断连退出
-		}
+	if response.RegistryInfo.GetServiceType() != p.registrant.Info.GetServiceType() { //类型检查不通过
+		return //则断开连接
+	}
+	if ok := p.registrant.register(response, p.i); !ok { //如果heart拒绝了连接请求
+		return //就直接断连退出
 	}
 	waitTime, sendTimeout, retryN := p.retryNController.GetWaitTimeoutRetryN(response, lastTimeout, lastRetryN)
-	select {
-	case <-time.After(waitTime): //等待一段时间再发，这里的等待时间应该小一点以免后续操作中发送时间不够
-		request.Request.Disconnect = false
-		beat(request, sendTimeout, retryN)
-	case <-p.stopChan: //突然要求停机
-		request.Request.Disconnect = true //那就发送断连信号
-		beat(request, sendTimeout, retryN)
-		close(p.stoppedChan) //发送已断连标志位
-	}
+	time.Sleep(waitTime) //等待一段时间再发
+	beat(protocol.TobeSendRequest{
+		Request: protocol.Request{
+			RegistrantInfo: p.registrant.Info,
+			Disconnect:     false,
+		},
+		Option: response.RegistryInfo.GetRequestSendOption(),
+	}, sendTimeout, retryN)
 }

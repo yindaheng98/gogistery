@@ -16,7 +16,7 @@ func NewRegistry(
 
 func NewRegistrant(
 	Info protocol.RegistrantInfo,
-	regitryN uint,
+	regitryN uint64,
 	CandidateList registrant.RegistryCandidateList,
 	retryNController registrant.RetryNController,
 	RequestProto protocol.RequestProtocol) *registrant.Registrant {

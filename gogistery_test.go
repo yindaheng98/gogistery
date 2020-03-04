@@ -1,6 +1,7 @@
 package gogistery
 
 import (
+	"context"
 	"fmt"
 	ExampleProtocol "github.com/yindaheng98/gogistry/example/protocol"
 	"github.com/yindaheng98/gogistry/protocol"
@@ -16,7 +17,7 @@ import (
 var RegistryInfos = make(map[string]ExampleProtocol.RegistryInfo)
 var LastRegistryInfo protocol.RegistryInfo
 
-func RegistryTest(t *testing.T, wg *sync.WaitGroup) {
+func RegistryTest(t *testing.T, ctx context.Context, wg *sync.WaitGroup) {
 	proto := ExampleProtocol.NewChanNetResponseProtocol()
 	info := ExampleProtocol.RegistryInfo{
 		ID: "REGISTRY_" + proto.GetAddr(),
@@ -43,14 +44,9 @@ func RegistryTest(t *testing.T, wg *sync.WaitGroup) {
 	})
 	r.Events.Disconnection.Enable()
 	go func() {
-		r.Run()
+		defer wg.Done()
+		r.Run(ctx)
 		fmt.Printf("%s stopped itself.\n", info.ID)
-	}()
-	go func() {
-		time.Sleep(15e9)
-		r.Stop()
-		wg.Done()
-		t.Log(fmt.Sprintf("%s stopped manually.", info.ID))
 	}()
 }
 
@@ -82,7 +78,7 @@ func (p *TestPINGer) PING(info protocol.RegistryInfo) bool {
 	return uint8(r) >= p.failRate
 }
 
-func RegistrantTest(t *testing.T, i int, wg *sync.WaitGroup) {
+func RegistrantTest(t *testing.T, ctx context.Context, i int, wg *sync.WaitGroup) {
 	proto := ExampleProtocol.NewChanNetRequestProtocol()
 	info := ExampleProtocol.RegistrantInfo{
 		ID: fmt.Sprintf("REGISTRANT_%02d", i),
@@ -107,29 +103,29 @@ func RegistrantTest(t *testing.T, i int, wg *sync.WaitGroup) {
 	})
 	r.Events.Error.Enable()
 	go func() {
-		r.Run()
+		defer wg.Done()
+		r.Run(ctx)
 		fmt.Printf("%s stopped itself.\n", info.ID)
-	}()
-	go func() {
-		time.Sleep(10e9)
-		r.Stop()
-		wg.Done()
-		t.Log(fmt.Sprintf("%s stopped manually.", info.ID))
 	}()
 }
 
 func TestRegistryRegistrant(t *testing.T) {
 	wgRegistry := new(sync.WaitGroup)
 	wgRegistry.Add(SERVERN)
+	ctxRegistry, cancelRegistry := context.WithTimeout(context.Background(), 10e9)
 	for i := 0; i < SERVERN; i++ {
-		RegistryTest(t, wgRegistry)
+		RegistryTest(t, ctxRegistry, wgRegistry)
 	}
 	time.Sleep(1e9)
 	wgRegistrant := new(sync.WaitGroup)
 	wgRegistrant.Add(CLIENTN)
+	ctxRegistrant, cancelRegistrant := context.WithTimeout(context.Background(), 10e9)
 	for i := 0; i < CLIENTN; i++ {
-		RegistrantTest(t, i, wgRegistrant)
+		RegistrantTest(t, ctxRegistrant, i, wgRegistrant)
 	}
+	time.Sleep(20e9)
+	cancelRegistry()
+	cancelRegistrant()
 	wgRegistry.Wait()
 	wgRegistrant.Wait()
 }

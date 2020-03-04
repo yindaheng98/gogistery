@@ -1,7 +1,9 @@
 package registrant
 
 import (
+	"context"
 	"errors"
+	"github.com/yindaheng98/gogistry/heart/requester"
 	"github.com/yindaheng98/gogistry/protocol"
 	"sync"
 	"sync/atomic"
@@ -9,9 +11,11 @@ import (
 )
 
 type Registrant struct {
-	Info              protocol.RegistrantInfo //注册器的信息
-	hearts            []*heart                //heart列表，每一个heart负责向一个注册线程
-	stopChan          chan bool               //传递停止信息
+	Info          protocol.RegistrantInfo //注册器的信息
+	hearts        []*requester.Heart
+	connections   []protocol.RegistryInfo
+	connectionsMu *sync.RWMutex
+
 	WatchdogTimeDelta time.Duration
 
 	candidates         RegistryCandidateList        //候选服务器选择协议
@@ -19,70 +23,130 @@ type Registrant struct {
 	Events             *events
 }
 
-func New(Info protocol.RegistrantInfo, regitryN uint, CandidateList RegistryCandidateList,
+func New(Info protocol.RegistrantInfo, regitryN uint64, CandidateList RegistryCandidateList,
 	retryNController RetryNController, RequestProto protocol.RequestProtocol) *Registrant {
 	registrant := &Registrant{
-		Info:              Info,
-		hearts:            make([]*heart, regitryN),
-		stopChan:          make(chan bool, 1),
+		Info:          Info,
+		hearts:        make([]*requester.Heart, regitryN),
+		connections:   make([]protocol.RegistryInfo, regitryN),
+		connectionsMu: new(sync.RWMutex),
+
 		WatchdogTimeDelta: 1e9,
 
 		candidates:         CandidateList,
 		CandidateBlacklist: make(chan []protocol.RegistryInfo, 1),
 		Events:             newEvents(),
 	}
-	for i := uint(0); i < regitryN; i++ {
-		registrant.hearts[i] = newHeart(registrant, retryNController, RequestProto)
+	for i := range registrant.hearts {
+		registrant.hearts[i] = requester.NewHeart(newBeater(registrant, retryNController, uint64(i)), RequestProto)
 	}
-	close(registrant.stopChan)
 	registrant.CandidateBlacklist <- []protocol.RegistryInfo{}
 	return registrant
 }
 
 //For the struct heart
-func (r *Registrant) register(response protocol.Response) (protocol.Request, bool) {
-	if response.RegistryInfo.GetServiceType() == r.Info.GetServiceType() { //如果类型相同
-		r.candidates.StoreCandidates(response.RegistryInfo.GetCandidates()) //就注册
-		return protocol.Request{
-			RegistrantInfo: r.Info,
-			Disconnect:     response.IsReject(),
-		}, true //并返回“可以响应”
+func (r *Registrant) register(response protocol.Response, i uint64) bool {
+	r.candidates.StoreCandidates(response.RegistryInfo.GetCandidates()) //先读取候选
+	r.connectionsMu.Lock()
+	defer r.connectionsMu.Unlock()
+	if response.IsReject() { //如果拒绝连接
+		r.connections[i] = nil //就删除
+		return false           //然后断开连接
 	} else {
-		return protocol.Request{
-			RegistrantInfo: r.Info,
-			Disconnect:     true,
-		}, false //否则返回“不能响应”
+		r.connections[i] = response.RegistryInfo //否则修改记录
+		return true
 	}
 }
 
-func (r *Registrant) Run() {
-	r.stopChan = make(chan bool, 1)
+func (r *Registrant) Run(ctx context.Context) {
+	connectionsChan := make(chan []protocol.RegistryInfo, 1)
+	connections := make([]protocol.RegistryInfo, len(r.connections))
+	connectionsChan <- connections
+	GetExcept := func() []protocol.RegistryInfo { //锁定并读取除外项
+		connections = <-connectionsChan
+		var except []protocol.RegistryInfo
+		for _, c := range connections { //去除空项
+			if c != nil {
+				except = append(except, c)
+			}
+		}
+		blacklist := <-r.CandidateBlacklist //取不可连接列表
+		except = append(except, blacklist...)
+		r.CandidateBlacklist <- blacklist
+		return except
+	}
+	PutExcept := func(info protocol.RegistryInfo, i uint64) { //放入并释放除外项
+		connections[i] = info
+		connectionsChan <- connections
+	}
+	ResetExcept := func(i uint64) { //锁定清除释放一条龙服务
+		connections := <-connectionsChan
+		connections[i] = nil
+		connectionsChan <- connections
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
 	wg := new(sync.WaitGroup)
-	connChan := make(chan []protocol.RegistryInfo, 1)
-	connChan <- make([]protocol.RegistryInfo, len(r.hearts))
 	beatingN := int64(0)
-	for i, h := range r.hearts {
+	for i := range r.connections {
+		r.connections[i] = nil
 		wg.Add(1)
-		go func(i int, h *heart) {
-			r.heartRoutine(h, i, connChan, &beatingN)
+		go func(i uint64) {
+			r.heartRoutine(ctx, r.hearts[i], &beatingN,
+				GetExcept,
+				func(info protocol.RegistryInfo) { PutExcept(info, i) },
+				func() { ResetExcept(i) })
 			wg.Done()
-		}(i, h)
+		}(uint64(i))
 	}
-	go r.watchDog(&beatingN)
+	go r.watchDog(ctx, &beatingN, cancel)
 	wg.Wait()
+	cancel()
 }
 
-func (r *Registrant) watchDog(beatingN *int64) {
+func (r *Registrant) heartRoutine(ctx context.Context, h *requester.Heart, beatingN *int64,
+	GetExcept func() []protocol.RegistryInfo, PutExcept func(protocol.RegistryInfo), ResetExcept func()) {
+	for {
+		var initRegistryInfo protocol.RegistryInfo
+		var initTimeout time.Duration
+		var initRetryN uint64
+		done := make(chan bool, 1)
+		go func() {
+			initRegistryInfo, initTimeout, initRetryN = r.candidates.GetCandidate(GetExcept()) //获取新连接
+			done <- true
+		}()
+		select {
+		case <-done: //完成则进行下一步
+			PutExcept(initRegistryInfo)
+		case <-ctx.Done(): //突然要停止
+			PutExcept(nil) //删除除外表
+			return         //然后退出
+		}
+
+		atomic.AddInt64(beatingN, 1)
+		err := h.RunBeating(ctx, protocol.TobeSendRequest{
+			Request: protocol.Request{RegistrantInfo: r.Info, Disconnect: false},
+			Option:  initRegistryInfo.GetRequestSendOption()}, initTimeout, initRetryN)
+		ResetExcept() //清空除外表
+		if err != nil {
+			r.Events.Error.Emit(err)
+		}
+		atomic.AddInt64(beatingN, -1)
+	}
+}
+
+func (r *Registrant) watchDog(ctx context.Context, beatingN *int64, cancel func()) {
 	lastBite := false //记录上一次watch是否达标
 	for {
 		select {
-		case <-r.stopChan: //如果要停机
+		case <-ctx.Done(): //如果要停机
+			cancel()
 			return //就直接退出
 		case <-time.After(r.WatchdogTimeDelta): //每隔一段时间watch一次
 			if atomic.LoadInt64(beatingN) <= 0 { //如果本次watch没达标
 				if lastBite { //并且上一次watch也没达标
 					r.Events.Error.Emit(errors.New("all the sending goroutine fall asleep"))
-					r.Stop() //就直接停掉
+					cancel() //就直接停掉
 				}
 				lastBite = true //将达标标记置为true
 			} else { //此次watch达标
@@ -92,69 +156,16 @@ func (r *Registrant) watchDog(beatingN *int64) {
 	}
 }
 
-func (r *Registrant) heartRoutine(h *heart, i int, connChan chan []protocol.RegistryInfo, beatingN *int64) {
-	for {
-		var except []protocol.RegistryInfo
-		conn := <-connChan       //取出已有连接列表
-		for _, c := range conn { //去除空项
-			if c != nil {
-				except = append(except, c)
-			}
-		}
-		blacklist := <-r.CandidateBlacklist //取不可连接列表
-		except = append(except, blacklist...)
-		r.CandidateBlacklist <- blacklist
-
-		var initRegistryInfo protocol.RegistryInfo
-		var initTimeout time.Duration
-		var initRetryN uint64
-		done := make(chan bool, 1)
-		go func() {
-			initRegistryInfo, initTimeout, initRetryN = r.candidates.GetCandidate(except) //获取新连接
-			done <- true
-		}()
-		select {
-		case <-done: //完成则进行下一步
-			conn[i] = initRegistryInfo //将新连接加入已有连接列表
-			connChan <- conn           //已有连接列表放回队列
-		case <-r.stopChan: //突然要停止
-			connChan <- conn //已有连接列表放回队列
-			return           //直接退出
-		}
-
-		atomic.AddInt64(beatingN, 1)
-		err := h.RunBeating(protocol.TobeSendRequest{
-			Request: protocol.Request{RegistrantInfo: r.Info, Disconnect: false},
-			Option:  initRegistryInfo.GetRequestSendOption()}, initTimeout, initRetryN)
-		if err != nil {
-			r.Events.Error.Emit(err)
-		}
-		atomic.AddInt64(beatingN, -1)
-
-		conn = <-connChan //从队列中取出已有连接列表
-		conn[i] = nil     //将对应位置空
-		connChan <- conn  //已有连接列表放回队列
-	}
-}
-
-func (r *Registrant) Stop() {
-	func() {
-		defer func() { recover() }()
-		close(r.stopChan)
-	}()
-	for _, h := range r.hearts {
-		h.Stop()
-	}
-}
-
 func (r *Registrant) GetConnections() []protocol.RegistryInfo {
-	res := make([]protocol.RegistryInfo, 0)
-	for _, h := range r.hearts {
-		if h.RegistryInfo != nil {
-			res = append(res, h.RegistryInfo)
+	connections := make([]protocol.RegistryInfo, 0)
+	r.connectionsMu.RLock()
+	defer r.connectionsMu.RUnlock()
+	for _, c := range r.connections {
+		if c != nil {
+			connections = append(connections, c)
 		}
 	}
-	return res
+	return connections
 }
 
 func (r *Registrant) AddCandidates(candidates []protocol.RegistryInfo) {
