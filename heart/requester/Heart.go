@@ -2,6 +2,7 @@ package requester
 
 import (
 	"context"
+	"errors"
 	"github.com/yindaheng98/gogistry/protocol"
 	"time"
 )
@@ -36,9 +37,22 @@ func (h *Heart) RunBeating(ctx context.Context,
 	}()
 	run := true
 	for run {
-		response, err, timeout, retryN := h.requester.Send(ctx, request, Timeout, RetryN)
-		if err != nil {
-			return err
+		var response protocol.Response
+		var err error
+		var timeout time.Duration
+		var retryN uint64
+		okChan := make(chan bool, 1)
+		go func() {
+			response, err, timeout, retryN = h.requester.Send(ctx, request, Timeout, RetryN)
+			close(okChan)
+		}()
+		select {
+		case <-okChan:
+			if err != nil {
+				return err
+			}
+		case <-ctx.Done():
+			return errors.New("exited by context")
 		}
 		lastResponse = response
 		if established { //如果已经达成过连接就触发更新事件

@@ -20,7 +20,7 @@ func ChanNetRequesterHeartTest(t *testing.T, ctx context.Context, RegistrantID s
 		Option: ExampleProtocol.ResponseSendOption{Timestamp: time.Now()},
 	}
 	heart := requester.NewHeart(
-		NewRequesterHeartBeater(info, 10),
+		NewRequesterHeartBeater(info, 1e9),
 		ExampleProtocol.NewChanNetRequestProtocol())
 	heart.Handlers.NewConnectionHandler = func(info protocol.Response) {
 		t.Log(s + fmt.Sprintf("New Connection-->%s", info.String()))
@@ -88,8 +88,9 @@ func TestChanNetHeart(t *testing.T) {
 		ChanNetRequesterHeartTest(t, timeoutCtx, fmt.Sprintf("REQUESTER_%02d", i), responsers[rand.Intn(RESPONSERN)], requestersWG)
 	}
 	time.Sleep(1e8)
-	cancel()
+	//cancel()
 	responsersWG.Wait()
 	requestersWG.Wait()
 	cancel()
+	time.Sleep(1e8)
 }
