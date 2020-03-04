@@ -37,17 +37,33 @@ func (h *Heart) RunBeating(ctx context.Context,
 	}()
 	run := true
 	for run {
-		var response protocol.Response
-		var err error
-		var timeout time.Duration
-		var retryN uint64
-		okChan := make(chan bool, 1)
+		okChan := make(chan error, 1)
 		go func() {
-			response, err, timeout, retryN = h.requester.Send(ctx, request, Timeout, RetryN)
+			response, err, timeout, retryN := h.requester.Send(ctx, request, Timeout, RetryN)
+			if err != nil {
+				okChan <- err
+				return
+			}
+			lastResponse = response
+			if established { //如果已经达成过连接就触发更新事件
+				h.Handlers.UpdateConnectionHandler(response)
+			}
+			run = false
+			h.beater.Beat(response, timeout, retryN,
+				func(requestB protocol.TobeSendRequest, timeoutB time.Duration, retryNB uint64) {
+					request, Timeout, RetryN = requestB, timeoutB, retryNB
+					run = true
+				})
+			if run { //只有上级协议判定可以继续进行接下来的连接才能视为连接达成
+				if !established { //此时可以触发新建连接事件
+					h.Handlers.NewConnectionHandler(response)
+				}
+				established = true //并且设置连接达成标记
+			}
 			close(okChan)
 		}()
 		select {
-		case <-okChan:
+		case err := <-okChan:
 			if err != nil {
 				return err
 			}
@@ -55,22 +71,6 @@ func (h *Heart) RunBeating(ctx context.Context,
 			request.Request.Disconnect = true //就发送断连信号
 			_, _, _, _ = h.requester.Send(context.Background(), request, Timeout, RetryN)
 			return errors.New("exited by context") //发完再退出
-		}
-		lastResponse = response
-		if established { //如果已经达成过连接就触发更新事件
-			h.Handlers.UpdateConnectionHandler(response)
-		}
-		run = false
-		h.beater.Beat(response, timeout, retryN,
-			func(requestB protocol.TobeSendRequest, timeoutB time.Duration, retryNB uint64) {
-				request, Timeout, RetryN = requestB, timeoutB, retryNB
-				run = true
-			})
-		if run { //只有上级协议判定可以继续进行接下来的连接才能视为连接达成
-			if !established { //此时可以触发新建连接事件
-				h.Handlers.NewConnectionHandler(response)
-			}
-			established = true //并且设置连接达成标记
 		}
 	}
 	return nil
