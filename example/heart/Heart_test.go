@@ -1,6 +1,7 @@
 package heart
 
 import (
+	"context"
 	"fmt"
 	ExampleProtocol "github.com/yindaheng98/gogistry/example/protocol"
 	"github.com/yindaheng98/gogistry/heart/requester"
@@ -12,7 +13,7 @@ import (
 	"time"
 )
 
-func ChanNetRequesterHeartTest(t *testing.T, RegistrantID string, initAddr string, wg *sync.WaitGroup) {
+func ChanNetRequesterHeartTest(t *testing.T, ctx context.Context, RegistrantID string, initAddr string, wg *sync.WaitGroup) {
 	s := fmt.Sprintf("--ChanNetRequesterHeartTest(RegistrantID:%s,initAddr:%s)-->", RegistrantID, initAddr)
 	info := ExampleProtocol.RegistrantInfo{
 		ID:     RegistrantID,
@@ -35,7 +36,7 @@ func ChanNetRequesterHeartTest(t *testing.T, RegistrantID string, initAddr strin
 	}
 	go func() {
 		t.Log(s + fmt.Sprintf("RequesterHeart started with info %s.", info.String()))
-		err := heart.RunBeating(protocol.TobeSendRequest{
+		err := heart.RunBeating(ctx, protocol.TobeSendRequest{
 			Request: protocol.Request{RegistrantInfo: info, Disconnect: false},
 			Option:  ExampleProtocol.RequestSendOption{RequestAddr: initAddr, Timestamp: time.Now()},
 		}, 1e9, 3)
@@ -50,7 +51,7 @@ func ChanNetRequesterHeartTest(t *testing.T, RegistrantID string, initAddr strin
 
 const TEST_TIMEOUT = 1e9
 
-func ChanNetResponserHeartTest(t *testing.T, RegistryID string, wg *sync.WaitGroup) string {
+func ChanNetResponserHeartTest(t *testing.T, ctx context.Context, RegistryID string, wg *sync.WaitGroup) string {
 	s := fmt.Sprintf("--ChanNetRequesterHeartTest(RegistryID:%s)-->", RegistryID)
 	proto := ExampleProtocol.NewChanNetResponseProtocol()
 	info := ExampleProtocol.RegistryInfo{
@@ -63,13 +64,7 @@ func ChanNetResponserHeartTest(t *testing.T, RegistryID string, wg *sync.WaitGro
 	}
 	go func() {
 		t.Log(s + fmt.Sprintf("ResponserHeart started with info %s.", info.String()))
-		go heart.RunBeating()
-		time.Sleep(5e9)
-		heart.Stop()
-		heart.Stop()
-		go heart.RunBeating()
-		time.Sleep(1e9)
-		heart.Stop()
+		heart.RunBeating(ctx)
 		wg.Done()
 	}()
 	return proto.GetAddr()
@@ -82,14 +77,19 @@ func TestChanNetHeart(t *testing.T) {
 	responsers := make([]string, RESPONSERN)
 	responsersWG := new(sync.WaitGroup)
 	responsersWG.Add(RESPONSERN)
+	ctx := context.Background()
+	timeoutCtx, cancel := context.WithTimeout(ctx, 1e9)
 	for i := 0; i < RESPONSERN; i++ {
-		responsers[i] = ChanNetResponserHeartTest(t, fmt.Sprintf("RESPONSER_%02d", i), responsersWG)
+		responsers[i] = ChanNetResponserHeartTest(t, timeoutCtx, fmt.Sprintf("RESPONSER_%02d", i), responsersWG)
 	}
 	requestersWG := new(sync.WaitGroup)
 	requestersWG.Add(REQUESTERN)
 	for i := 0; i < REQUESTERN; i++ {
-		ChanNetRequesterHeartTest(t, fmt.Sprintf("REQUESTER_%02d", i), responsers[rand.Intn(RESPONSERN)], requestersWG)
+		ChanNetRequesterHeartTest(t, timeoutCtx, fmt.Sprintf("REQUESTER_%02d", i), responsers[rand.Intn(RESPONSERN)], requestersWG)
 	}
+	time.Sleep(1e8)
+	cancel()
 	responsersWG.Wait()
 	requestersWG.Wait()
+	cancel()
 }
