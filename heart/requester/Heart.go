@@ -39,6 +39,7 @@ func (h *Heart) RunBeating(ctx context.Context,
 	for run {
 		okChan := make(chan error, 1)
 		go func() {
+			defer close(okChan)
 			response, err, timeout, retryN := h.requester.Send(ctx, request, Timeout, RetryN)
 			if err != nil {
 				okChan <- err
@@ -60,7 +61,6 @@ func (h *Heart) RunBeating(ctx context.Context,
 				}
 				established = true //并且设置连接达成标记
 			}
-			close(okChan)
 		}()
 		select {
 		case err := <-okChan:
