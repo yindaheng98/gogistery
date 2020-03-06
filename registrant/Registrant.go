@@ -58,8 +58,17 @@ func New(Info protocol.RegistrantInfo, regitryN uint64, CandidateList RegistryCa
 }
 
 //For the struct heart
-func (r *Registrant) register(response protocol.Response, i uint64) bool {
-	r.candidates.StoreCandidates(response.RegistryInfo.GetCandidates()) //先读取候选
+func (r *Registrant) register(ctx context.Context, response protocol.Response, i uint64) bool {
+	okChan := make(chan bool, 1)
+	go func() {
+		r.candidates.StoreCandidates(ctx, response.RegistryInfo.GetCandidates()) //先读取候选
+		okChan <- true
+	}()
+	select {
+	case <-okChan:
+	case <-ctx.Done():
+		return false
+	}
 	r.connectionsMu.Lock()
 	defer r.connectionsMu.Unlock()
 	if response.IsReject() { //如果拒绝连接
@@ -125,7 +134,7 @@ func (r *Registrant) heartRoutine(ctx context.Context, h *requester.Heart, beati
 		var initRetryN uint64
 		done := make(chan bool, 1)
 		go func() {
-			initRegistryInfo, initTimeout, initRetryN = r.candidates.GetCandidate(GetExcept()) //获取新连接
+			initRegistryInfo, initTimeout, initRetryN = r.candidates.GetCandidate(ctx, GetExcept()) //获取新连接
 			done <- true
 		}()
 		select {
@@ -181,6 +190,6 @@ func (r *Registrant) GetConnections() []protocol.RegistryInfo {
 	return connections
 }
 
-func (r *Registrant) AddCandidates(candidates []protocol.RegistryInfo) {
-	r.candidates.StoreCandidates(candidates)
+func (r *Registrant) AddCandidates(ctx context.Context, candidates []protocol.RegistryInfo) {
+	r.candidates.StoreCandidates(ctx, candidates)
 }

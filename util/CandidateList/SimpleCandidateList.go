@@ -1,6 +1,7 @@
 package CandidateList
 
 import (
+	"context"
 	"github.com/yindaheng98/go-utility/SortedSet"
 	"github.com/yindaheng98/gogistry/protocol"
 	"time"
@@ -26,7 +27,7 @@ func NewSimpleCandidateList(size uint64, initRegistry protocol.RegistryInfo, ini
 	return list
 }
 
-func (list *SimpleCandidateList) StoreCandidates(candidates []protocol.RegistryInfo) {
+func (list *SimpleCandidateList) StoreCandidates(ctx context.Context, candidates []protocol.RegistryInfo) {
 	set := <-list.set
 	defer func() {
 		list.set <- set                  //完成后放回队列
@@ -44,7 +45,7 @@ func (list *SimpleCandidateList) StoreCandidates(candidates []protocol.RegistryI
 	}
 }
 
-func (list *SimpleCandidateList) GetCandidate(excepts []protocol.RegistryInfo) (protocol.RegistryInfo, time.Duration, uint64) {
+func (list *SimpleCandidateList) GetCandidate(ctx context.Context, excepts []protocol.RegistryInfo) (protocol.RegistryInfo, time.Duration, uint64) {
 	for {
 		set := <-list.set
 		for _, except := range excepts {

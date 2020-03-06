@@ -1,6 +1,7 @@
 package registrant
 
 import (
+	"context"
 	"github.com/yindaheng98/gogistry/protocol"
 	"time"
 )
@@ -14,11 +15,11 @@ type beater struct {
 func newBeater(registrant *Registrant, retryNController RetryNController, i uint64) *beater {
 	return &beater{registrant, retryNController, i}
 }
-func (p *beater) Beat(response protocol.Response, lastTimeout time.Duration, lastRetryN uint64, beat func(protocol.TobeSendRequest, time.Duration, uint64)) {
+func (p *beater) Beat(ctx context.Context, response protocol.Response, lastTimeout time.Duration, lastRetryN uint64, beat func(protocol.TobeSendRequest, time.Duration, uint64)) {
 	if response.RegistryInfo.GetServiceType() != p.registrant.Info.GetServiceType() { //类型检查不通过
 		return //则断开连接
 	}
-	if ok := p.registrant.register(response, p.i); !ok { //如果heart拒绝了连接请求
+	if ok := p.registrant.register(ctx, response, p.i); !ok { //如果heart拒绝了连接请求
 		return //就直接断连退出
 	}
 	waitTime, sendTimeout, retryN := p.retryNController.GetWaitTimeoutRetryN(response, lastTimeout, lastRetryN)
