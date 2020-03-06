@@ -38,7 +38,20 @@ func New(Info protocol.RegistrantInfo, regitryN uint64, CandidateList RegistryCa
 		Events:             newEvents(),
 	}
 	for i := range registrant.hearts {
-		registrant.hearts[i] = requester.NewHeart(newBeater(registrant, retryNController, uint64(i)), RequestProto)
+		heart := requester.NewHeart(newBeater(registrant, retryNController, uint64(i)), RequestProto)
+		heart.Handlers.NewConnectionHandler = func(response protocol.Response) {
+			registrant.Events.NewConnection.Emit(response.RegistryInfo)
+		}
+		heart.Handlers.UpdateConnectionHandler = func(response protocol.Response) {
+			registrant.Events.UpdateConnection.Emit(response.RegistryInfo)
+		}
+		heart.Handlers.RetryHandler = func(request protocol.TobeSendRequest, err error) {
+			registrant.Events.Retry.Emit(request, err)
+		}
+		heart.Handlers.DisconnectionHandler = func(response protocol.Response, err error) {
+			registrant.Events.Disconnection.Emit(response.RegistryInfo, err)
+		}
+		registrant.hearts[i] = heart
 	}
 	registrant.CandidateBlacklist <- []protocol.RegistryInfo{}
 	return registrant
