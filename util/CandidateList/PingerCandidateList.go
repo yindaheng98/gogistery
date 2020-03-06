@@ -1,13 +1,14 @@
 package CandidateList
 
 import (
+	"context"
 	"github.com/yindaheng98/go-utility/SortedSet"
 	"github.com/yindaheng98/gogistry/protocol"
 	"time"
 )
 
 type PINGer interface {
-	PING(info protocol.RegistryInfo) bool
+	PING(ctx context.Context, info protocol.RegistryInfo) bool
 }
 
 type pingTimer struct {
@@ -16,15 +17,18 @@ type pingTimer struct {
 }
 
 //返回一次ping操作的时间
-func (p *pingTimer) PINGTime(el element) (time.Duration, bool) {
+func (p *pingTimer) PINGTime(ctx context.Context, el element) (time.Duration, bool) {
 	pingChan := make(chan bool, 1)
 	t := time.Now() //记录ping操作开始的时间
-	go func() { pingChan <- p.pinger.PING(el.RegistryInfo) }()
+	pingCtx, cancel := context.WithTimeout(ctx, p.maxPingTimeout)
+	defer cancel()
+	go func() { pingChan <- p.pinger.PING(pingCtx, el.RegistryInfo) }()
 	var ok bool
 	select {
 	case ok = <-pingChan:
-	case <-time.After(p.maxPingTimeout):
-		ok = false //超时则失败
+		ok = true
+	case <-pingCtx.Done(): //超时则失败
+		ok = false
 	}
 	return time.Now().Sub(t), ok //返回ping操作时长和是否成功
 }
@@ -58,12 +62,12 @@ func NewPingerCandidateList(size uint64, pinger PINGer, maxPingTimeout time.Dura
 
 	list.set <- SortedSet.New(size)
 	list.pingingList <- make(map[string]element, size)
-	list.ping(element{initRegistry})
+	list.ping(context.Background(), element{initRegistry})
 	return list
 }
 
 //进行一次ping操作并按照结果更新集合
-func (list *PingerCandidateList) ping(el element) {
+func (list *PingerCandidateList) ping(ctx context.Context, el element) {
 	pingingList := <-list.pingingList
 	if _, exists := pingingList[el.GetName()]; exists { //如果已经有其他进程在ping了
 		list.pingingList <- pingingList
@@ -72,9 +76,20 @@ func (list *PingerCandidateList) ping(el element) {
 	pingingList[el.GetName()] = el //开始ping操作前先入pinging列表
 	list.pingingList <- pingingList
 
-	set := <-list.set                      //取出set
-	timeout, ok := list.timer.PINGTime(el) //进行ping操作
-	if ok {                                //如果成功
+	set := <-list.set //取出set
+	var timeout time.Duration
+	okChan := make(chan bool, 1)
+	go func() {
+		var ok bool
+		timeout, ok = list.timer.PINGTime(ctx, el) //进行ping操作
+		okChan <- ok
+	}()
+	ok := false
+	select {
+	case ok = <-okChan:
+	case <-ctx.Done():
+	}
+	if ok { //如果成功
 		set.Update(el, float64(timeout))    //则更新
 		close(list.waitGroup)               //唤醒所有等待进程
 		list.waitGroup = make(chan bool, 1) //然后再阻塞之
@@ -88,7 +103,7 @@ func (list *PingerCandidateList) ping(el element) {
 	list.pingingList <- pingingList
 }
 
-func (list *PingerCandidateList) StoreCandidates(candidates []protocol.RegistryInfo) {
+func (list *PingerCandidateList) StoreCandidates(ctx context.Context, candidates []protocol.RegistryInfo) {
 	set := <-list.set
 	defer func() { list.set <- set }()
 	set.DeltaUpdateAll(-1)
@@ -97,7 +112,7 @@ func (list *PingerCandidateList) StoreCandidates(candidates []protocol.RegistryI
 		if w, ok := set.GetWeight(el); ok { //如果已存在
 			set.Update(el, w) //则只更新元素内容
 		} else { //否则进行ping和权重更新操作
-			go list.ping(el)
+			go list.ping(ctx, el)
 		}
 	}
 }

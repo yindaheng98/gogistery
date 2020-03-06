@@ -63,7 +63,7 @@ func NewTestPINGer(failRate uint8, maxT time.Duration) *TestPINGer {
 	return &TestPINGer{failRate, rand.NewSource(10), maxT}
 }
 
-func (p *TestPINGer) PING(info protocol.RegistryInfo) bool {
+func (p *TestPINGer) PING(ctx context.Context, info protocol.RegistryInfo) bool {
 	s := fmt.Sprintf("TestPINGer.PING(%s)-->", info.String())
 	r := rand.New(p.src).Int31n(100)
 	timeout := time.Duration(rand.New(p.src).Uint64()) % p.maxT
@@ -74,6 +74,11 @@ func (p *TestPINGer) PING(info protocol.RegistryInfo) bool {
 		s += "And it succeed"
 	}
 	fmt.Println(s)
+	select {
+	case <-ctx.Done():
+		return false
+	case <-time.After(timeout):
+	}
 	time.Sleep(timeout)
 	return uint8(r) >= p.failRate
 }
