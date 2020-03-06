@@ -33,7 +33,7 @@ func (h *Heart) RunBeating(ctx context.Context) {
 			if err != nil {
 				h.ErrorHandler(err)
 			} else {
-				responseFunc(h.beater.Beat(request))
+				responseFunc(h.beater.Beat(ctx, request))
 			}
 		case <-ctx.Done():
 			return

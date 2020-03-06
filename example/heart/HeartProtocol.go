@@ -1,6 +1,7 @@
 package heart
 
 import (
+	"context"
 	"fmt"
 	ExampleProtocol "github.com/yindaheng98/gogistry/example/protocol"
 	"github.com/yindaheng98/gogistry/protocol"
@@ -15,7 +16,7 @@ type RequesterHeartBeater struct {
 func NewRequesterHeartBeater(info ExampleProtocol.RegistrantInfo, BeatN int64) *RequesterHeartBeater {
 	return &RequesterHeartBeater{Info: info, n: BeatN}
 }
-func (r *RequesterHeartBeater) Beat(response protocol.Response, timeout time.Duration, retryN uint64,
+func (r *RequesterHeartBeater) Beat(ctx context.Context, response protocol.Response, timeout time.Duration, retryN uint64,
 	beat func(protocol.TobeSendRequest, time.Duration, uint64)) {
 	s := "------RequesterHeartProtocol.Beat------>"
 	defer func() { fmt.Print(s + "\n") }()
@@ -46,7 +47,7 @@ func NewResponserHeartBeater(info ExampleProtocol.RegistryInfo, Timeout time.Dur
 	return &ResponserHeartBeater{Info: info, Timeout: Timeout, n: 0}
 }
 
-func (r *ResponserHeartBeater) Beat(request protocol.Request) protocol.TobeSendResponse {
+func (r *ResponserHeartBeater) Beat(ctx context.Context, request protocol.Request) protocol.TobeSendResponse {
 	s := "------ResponserHeartProtocol.Beat------>"
 	defer func() { fmt.Print(s + "\n") }()
 	s += fmt.Sprintf("No.%d request %s arrived. ", r.n, request.String())

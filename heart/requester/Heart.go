@@ -50,7 +50,7 @@ func (h *Heart) RunBeating(ctx context.Context,
 				h.Handlers.UpdateConnectionHandler(response)
 			}
 			run = false
-			h.beater.Beat(response, timeout, retryN,
+			h.beater.Beat(ctx, response, timeout, retryN,
 				func(requestB protocol.TobeSendRequest, timeoutB time.Duration, retryNB uint64) {
 					request, Timeout, RetryN = requestB, timeoutB, retryNB
 					run = true
