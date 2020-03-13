@@ -140,6 +140,8 @@ github.com/yindaheng98/go-utility v0.0.0-20200224141039-207a3b0226b7 h1:dtYwgS6P
 github.com/yindaheng98/go-utility v0.0.0-20200224141039-207a3b0226b7/go.mod h1:jAdOhT7aQmcfOW901gOCnOLvS4qKrO5Dz/McsDrsyl8=
 github.com/yindaheng98/go-utility v0.0.0-20200224143759-554ac9a27290 h1:mnMT7GOmWf5IJ2g0dVb+M5k5KF2+hnRTWapoUlyPObY=
 github.com/yindaheng98/go-utility v0.0.0-20200224143759-554ac9a27290/go.mod h1:jAdOhT7aQmcfOW901gOCnOLvS4qKrO5Dz/McsDrsyl8=
+github.com/yindaheng98/go-utility v0.0.0-20200309115846-83b304e8e086 h1:xx+tMQFfiw7hx7VS48MrLhIgGWamppUWk+DDL4O7l9A=
+github.com/yindaheng98/go-utility v0.0.0-20200309115846-83b304e8e086/go.mod h1:jAdOhT7aQmcfOW901gOCnOLvS4qKrO5Dz/McsDrsyl8=
 golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20191227163750-53104e6ec876 h1:sKJQZMuxjOAR/Uo2LBfU90onWEf1dF4C+0hPJCc9Mpc=
