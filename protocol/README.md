@@ -20,7 +20,7 @@ This two interface is designed for carry on those informations which is related 
 
 ```go
 type RequestProtocol interface {
-	Request(requestChan <-chan TobeSendRequest, responseChan chan<- ReceivedResponse)
+	Request(ctx context.Context, requestChan <-chan TobeSendRequest, responseChan chan<- ReceivedResponse)
 }
 ```
 
@@ -41,7 +41,7 @@ In the implementation of `RequestProtocol`, you should do the following actions 
 
 ```go
 type ResponseProtocol interface {
-	Response(requestChan chan<- ReceivedRequest, responseChan <-chan TobeSendResponse)
+	Response(ctx context.Context, requestChan chan<- ReceivedRequest, responseChan <-chan TobeSendResponse)
 }
 ```
 
