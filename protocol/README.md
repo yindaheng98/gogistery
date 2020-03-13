@@ -2,17 +2,15 @@
 
 ## Introduction
 
-This package is the basic of the whole gogistry. Before using gogistry, you should implement the interfaces using the transmission protocol you like (i.e. http, grpc, etc) in this package first.
+This package is the basic of the gogistry. Before using gogistry, you should implement the interfaces using the transmission protocol you like (i.e. http, grpc, etc) in this package first.
 
 ## How to implement
 
-### Implement the interface `Request` and `RequestSendOption`
+There are 6 interface you should implement: `RequestSendOption`, `ResponseSendOption`, `RegistrantInfo`, `RegistryInfo`, `RequestProtocol` and `ResponseProtocol`.
 
-`Request` is designed for the communication from registrants to registry, while `RequestSendOption` is designed for carry on those informations which is related to the communication but don't need to be sent from registrants to registry.
+### Implement `RequestSendOption` and `ResponseSendOption`
 
-### Implement the interface `Response` and `ResponseSendOption`
-
-Just like `Request` and `RequestSendOption`, `Response` will be sent back from registry to registrants after a request arrived at registry, and `RequestSendOption` contains those related informations that don't need to be sent back.
+This two interface is designed for carry on those informations which is related to the message sending or receiving .
 
 ### Implement the interface `RequestProtocol`
 
@@ -24,7 +22,7 @@ type RequestProtocol interface {
 }
 ```
 
-Higher-level protocol (`Heart.RequesterHeart`) will call this function to send a request according to some option (they will be a `Request` and a `RequestSendOption` you just implemented, enclosed into `TobeSendRequest`) via lower-level protocol (i.e. http, grpc, etc, implemented by you), and receive the response (it is `Response` you just implemented).
+Higher-level protocol (`"heart/requester".Heart`) will call this function to send a request according to some option (they will be a `Request` and a `RequestSendOption` you just implemented, enclosed into `TobeSendRequest`) via lower-level protocol (i.e. http, grpc, etc, implemented by you), and receive the response.
 
 In the implementation of `RequestProtocol`, you should do the following actions in `RequestProtocol.Request`:
 
@@ -45,7 +43,7 @@ type ResponseProtocol interface {
 }
 ```
 
-Higher-level protocol(`Heart.ResponserHeart`) will call this function in a loop, to receive the request (`Request`) from lower-level protocol (i.e. http, grpc, etc, implemented by you) from registrant and send back the generated response and sending option (`Response` and `ResponseSendOption`).
+Higher-level protocol(`"heart/responser".Heart`) will call this function in a loop, to receive the request (`Request`) from lower-level protocol (i.e. http, grpc, etc, implemented by you) from registrant and send back the generated response and sending option (`Response` and `ResponseSendOption`).
 
 In the implementation of `ResponseProtocol`, you should do the following actions in `ResponseProtocol.Response`:
 
