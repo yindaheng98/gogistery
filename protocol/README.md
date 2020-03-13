@@ -1,8 +1,10 @@
-# Protocol
+# github.com/yindaheng98/gogistry/protocol
 
 ## Introduction
 
 This package is the basic of the gogistry. Before using gogistry, you should implement the interfaces using the transmission protocol you like (i.e. http, grpc, etc) in this package first.
+
+A usage example is in [example/protocol](../example/protocol)
 
 ## How to implement
 
