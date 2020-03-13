@@ -5,19 +5,20 @@ import (
 	"fmt"
 )
 
-//此类用于存储request端收到的response和错误信息
+//ReceivedResponse is used to store the response and error received by registrant.
 type ReceivedResponse struct {
 	Response Response
 	Error    error
 }
 
-//此类用于存储response端收到的request和错误信息
+//ReceivedRequest is used to store the request and error received by registry.
 type ReceivedRequest struct {
 	Request Request
 	Error   error
 }
 
-//发送一个请求所需的信息
+//TobeSendRequest is used to store the request that is going to be sent by registrant to registry.
+//Option is the option information for sending (encoding, encryption, etc).
 type TobeSendRequest struct {
 	Request Request
 	Option  RequestSendOption
@@ -27,7 +28,8 @@ func (r TobeSendRequest) String() string {
 	return fmt.Sprintf("TobeSendRequest{Request:%s,Option:%s}", r.Request.String(), r.Option.String())
 }
 
-//发送一个响应所需的信息
+//TobeSendResponse is used to store the response that is going to be sent back by registry to registrant.
+//Option is the option information for sending (encoding, encryption, etc).
 type TobeSendResponse struct {
 	Response Response
 	Option   ResponseSendOption
@@ -37,14 +39,46 @@ func (r TobeSendResponse) String() string {
 	return fmt.Sprintf("TobeSendResponse{Response:%s,Option:%s}", r.Response.String(), r.Option.String())
 }
 
-//心跳数据发送协议
+//RequestProtocol defines how a request should be sent from registrant to registry (by http, grpc, etc).
+//It should be implement by user.
+//
+//Higher-level protocol (`"heart/requester".Heart`) will call this function to send a request according to some option (they will be a `Request` and a `RequestSendOption`, enclosed into `TobeSendRequest`) via lower-level protocol (i.e. http, grpc, etc, implemented by you), and receive the response.
 type RequestProtocol interface {
-	//从只读channel responseChan中取出信息发出，并将发回的信息和错误放入只写channel responseChan
+	//In the implementation of this method, you should:
+	//
+	//1. Get a `TobeSendRequest` from the `requestChan`
+	//
+	//2. Get a `Request` and a `RequestSendOption` from `TobeSendRequest`
+	//
+	//3. Send the `Request` according to `RequestSendOption` via your protocol
+	//
+	//4. Waiting for a response in your protocol, and enclose the response into a `Response`, if there is an error occured, you should generate an `error`
+	//
+	//5. Enclose the `Response` and the `error` (if exists) into a `ReceivedResponse`
+	//
+	//6. Put the `ReceivedResponse` into the `responseChan`
 	Request(ctx context.Context, requestChan <-chan TobeSendRequest, responseChan chan<- ReceivedResponse)
 }
 
-//心跳数据响应协议
+//ResponseProtocol defines how a response should be sent back from registrant to registry (by http, grpc, etc).
+//It should be implement by user.
+//
+//Higher-level protocol(`"heart/responser".Heart`) will call this function in a loop, to receive the request (`Request`) from lower-level protocol (i.e. http, grpc, etc, implemented by you) from registrant and send back the generated response and sending option (`Response` and `ResponseSendOption`).
 type ResponseProtocol interface {
-	//接收到信息时将接收到的信息和错误放入只写channel requestChan，并从只读channel responseChan中取出信息发回
+	//In the implementation of this method, you should:
+	//
+	//1. Waiting for a request in your protocol, if there is an error occured, you should generate an `error`
+	//
+	//2. Enclose the request into a `Request`
+	//
+	//3. Enclose the `Request` and the `error` (if exists) into a `ReceivedRequest`
+	//
+	//4. Put the `ReceivedRequest` into `requestChan`
+	//
+	//5. Waiting for `responseChan` to send back a `TobeSendResponse`
+	//
+	//6. Get a `Response` and a `ResponseSendOption` from the `TobeSendResponse`
+	//
+	//7. Send back the `Response` according to the `ResponseSendOption` via your protocol
 	Response(ctx context.Context, requestChan chan<- ReceivedRequest, responseChan <-chan TobeSendResponse)
 }

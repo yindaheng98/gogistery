@@ -5,30 +5,45 @@ import (
 	"time"
 )
 
-//自定义请求发送设置
+//RequestSendOption is the option information for request sending (encoding, encryption, etc).
 type RequestSendOption interface {
 	String() string
 }
 
-//记录服务器信息
+//RegistryInfo contains the information for registry.
+//It will be send back from registry to registrant within the request.
+//It should be implement by user.
 type RegistryInfo interface {
+
+	//Returns the unique ID of the registry
 	GetRegistryID() string
-	GetServiceType() string                  //记录服务类型，注册中心和注册器的服务类型必须一致
-	GetRequestSendOption() RequestSendOption //此服务端接收何种请求
-	GetCandidates() []RegistryInfo           //候选注册器信息列表
+
+	//Returns the type of the service
+	GetServiceType() string
+
+	//Returns the option when the registrant send the request
+	GetRequestSendOption() RequestSendOption
+
+	//Returns the information of candidate registries
+	GetCandidates() []RegistryInfo
+
 	String() string
 }
 
-//心跳数据响应基础类
+//Response is the response that registry send to registrant.
+//It contains the information for registry "RegistryInfo", a connection flag "Reject" and a timeout value "Timeout".
 type Response struct {
 	RegistryInfo RegistryInfo
 	Timeout      time.Duration //下一次连接的时间限制
 	Reject       bool          //是否拒绝连接
 }
 
+//Get the value of connection flag "Reject".
 func (r Response) IsReject() bool {
 	return r.Reject
 }
+
+//Get the value of timeout value "Timeout".
 func (r Response) GetTimeout() time.Duration {
 	return r.Timeout
 }

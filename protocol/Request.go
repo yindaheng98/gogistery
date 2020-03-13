@@ -2,25 +2,36 @@ package protocol
 
 import "fmt"
 
-//自定义响应发送设置
+//ResponseSendOption is the option information for response sending (encoding, encryption, etc).
 type ResponseSendOption interface {
 	String() string
 }
 
-//记录服务器端收到的注册器信息
+//RegistrantInfo contains the information for registrant.
+//It will be send from registrant to registry within the request.
+//It should be implement by user.
 type RegistrantInfo interface {
+
+	//Returns the unique ID of the registrant
 	GetRegistrantID() string
-	GetServiceType() string                    //记录服务类型，注册中心和注册器的服务类型必须一致
-	GetResponseSendOption() ResponseSendOption //此服务端接收何种请求
+
+	//Returns the type of the service
+	GetServiceType() string
+
+	//Returns the option when the registry send back the response
+	GetResponseSendOption() ResponseSendOption
+
 	String() string
 }
 
-//心跳数据请求基础类
+//Request is the request that registrant send to registry.
+//It contains the information for registrant "RegistrantInfo" and a connection flag "Disconnect".
 type Request struct { //服务器端收到的请求
 	RegistrantInfo RegistrantInfo
 	Disconnect     bool
 }
 
+//Get the value of connection flag "Disconnect".
 func (r Request) IsDisconnect() bool {
 	return r.Disconnect
 }
