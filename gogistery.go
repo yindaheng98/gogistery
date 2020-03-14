@@ -6,6 +6,7 @@ import (
 	"github.com/yindaheng98/gogistry/registry"
 )
 
+//NewRegistry returns the pointer of an "registry".
 func NewRegistry(
 	Info protocol.RegistryInfo,
 	maxRegistrants uint,
@@ -14,6 +15,7 @@ func NewRegistry(
 	return registry.New(Info, maxRegistrants, timeoutController, ResponseProto)
 }
 
+//NewRegistry returns the pointer of an "registrant".
 func NewRegistrant(
 	Info protocol.RegistrantInfo,
 	regitryN uint64,
