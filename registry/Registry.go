@@ -9,7 +9,11 @@ import (
 	"time"
 )
 
+//Registrant stands for the "registry" in gogistry.
+//A "registry" will receive requests from registrant, record them and send back response in a loop.
 type Registry struct {
+
+	//Info contains the information of this Registry.
 	Info  protocol.RegistryInfo //存储自身信息
 	heart *responser.Heart      //响应器/消息源
 
@@ -18,9 +22,11 @@ type Registry struct {
 	timeoutMapMu      *sync.RWMutex
 	timeoutController TimeoutController //如何选择timeout
 
+	//Events contains 5 emitters to record running events.
 	Events *events
 }
 
+//New returns the pointer to a Registry.
 func New(Info protocol.RegistryInfo, maxRegistrants uint, timeoutController TimeoutController, ResponseProto protocol.ResponseProtocol) *Registry {
 	registry := &Registry{
 		Info:  Info,
@@ -40,11 +46,14 @@ func New(Info protocol.RegistryInfo, maxRegistrants uint, timeoutController Time
 	return registry
 }
 
+//Run will start the loop of request receive and response send.
 func (r *Registry) Run(ctx context.Context) {
 	r.heart.RunBeating(ctx)
 }
 
-//获取当前所有活动连接
+//Registrant maintains a connection list,
+//which can be accessed through GetConnections.
+//This connection list contains the information (`protocol.RegistrantInfo`) of the registrants connecting with the Registry.
 func (r *Registry) GetConnections() []protocol.RegistrantInfo {
 	r.timeoutMapMu.RLock()
 	defer r.timeoutMapMu.RUnlock()
