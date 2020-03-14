@@ -12,7 +12,7 @@ type RegistryCandidateList interface {
 	//Add the information of a registries to candidate registry list.
 	StoreCandidates(ctx context.Context, candidates []protocol.RegistryInfo)
 
-	//Get the information of a candidate registry,
-	//except those in "except".
+	//Get the information of a candidate registry, except those in "except".
+	//If there is no candidate meet the conditions, block until a eligible candidate added.
 	GetCandidate(ctx context.Context, except []protocol.RegistryInfo) (protocol.RegistryInfo, time.Duration, uint64)
 }

@@ -1,5 +1,5 @@
 /*
-This package defines the "registry" in gogistry.
+Package registry defines the "registry" in gogistry.
 A "registry" will receive requests from registrant, record them and send back response in a loop.
 
 Source code and other details for the project are available at GitHub:

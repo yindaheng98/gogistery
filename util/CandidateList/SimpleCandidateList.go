@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+//SimpleCandidateList is a simple implementation of RegistryCandidateList.
+//This implementation sort registries by a weight.
 type SimpleCandidateList struct {
 	initTimeout time.Duration
 	initRetryN  uint64
@@ -14,6 +16,8 @@ type SimpleCandidateList struct {
 	waitGroup   chan bool
 }
 
+//NewSimpleCandidateList returns the pointer to a SimpleCandidateList.
+//At the beginning, the SimpleCandidateList will contain 1 candidate registry.
 func NewSimpleCandidateList(size uint64, initRegistry protocol.RegistryInfo, initTimeout time.Duration, initRetryN uint64) *SimpleCandidateList {
 	list := &SimpleCandidateList{
 		initTimeout: initTimeout,
@@ -27,6 +31,14 @@ func NewSimpleCandidateList(size uint64, initRegistry protocol.RegistryInfo, ini
 	return list
 }
 
+//StoreCandidates adds or updates registries in the list candidates and change the registries' weight
+//according to the following principle:
+//
+//1. If a candidate registry is not exist, add the registry and give the set weight to 0
+//
+//2. If a candidate registry is exist, update the registry but do not change its weight
+//
+//3. When added or updated, all the other candidate registries' weight increase by 1
 func (list *SimpleCandidateList) StoreCandidates(ctx context.Context, candidates []protocol.RegistryInfo) {
 	set := <-list.set
 	defer func() {
@@ -45,7 +57,9 @@ func (list *SimpleCandidateList) StoreCandidates(ctx context.Context, candidates
 	}
 }
 
-func (list *SimpleCandidateList) GetCandidate(ctx context.Context, excepts []protocol.RegistryInfo) (protocol.RegistryInfo, time.Duration, uint64) {
+//GetCandidate select the candidate registry whose weight is smallest and is not in "excepts" as result and delete it from SimpleCandidateList.
+//If there is no candidate meet the above conditions, block until a eligible candidate added
+func (list *SimpleCandidateList) GetCandidate(ctx context.Context, excepts []protocol.RegistryInfo) (candidate protocol.RegistryInfo, initTimeout time.Duration, initRetryN uint64) {
 	for {
 		set := <-list.set
 		for _, except := range excepts {

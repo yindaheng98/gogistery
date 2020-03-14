@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+//PINGer defines a customized PING method for the measurement of network latency in PingerCandidateList.
 type PINGer interface {
 	PING(ctx context.Context, info protocol.RegistryInfo) bool
 }
@@ -33,7 +34,8 @@ func (p *pingTimer) PINGTime(ctx context.Context, el element) (time.Duration, bo
 	return time.Now().Sub(t), ok //返回ping操作时长和是否成功
 }
 
-//使用PING操作更新候选列表顺序的CandidateList
+//PingerCandidateList is a implementation of RegistryCandidateList.
+//This implementation sort registries by a their network latency.
 type PingerCandidateList struct {
 	SimpleCandidateList
 	timer pingTimer
@@ -42,6 +44,7 @@ type PingerCandidateList struct {
 	pingingList chan map[string]element //正在被ping的注册中心列表
 }
 
+//NewPingerCandidateList returns the pointer to a PingerCandidateList.
 func NewPingerCandidateList(size uint64, pinger PINGer, maxPingTimeout time.Duration,
 	initRegistry protocol.RegistryInfo, initTimeout time.Duration, initRetryN uint64) *PingerCandidateList {
 	list := &PingerCandidateList{
@@ -103,6 +106,8 @@ func (list *PingerCandidateList) ping(ctx context.Context, el element) {
 	list.pingingList <- pingingList
 }
 
+//StoreCandidates adds or updates registries in the list candidates and change the registries' weight
+//according to their network latency.
 func (list *PingerCandidateList) StoreCandidates(ctx context.Context, candidates []protocol.RegistryInfo) {
 	set := <-list.set
 	defer func() { list.set <- set }()

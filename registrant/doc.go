@@ -1,5 +1,5 @@
 /*
-This package defines the "registrant" in gogistry.
+Package registrant defines the "registrant" in gogistry.
 A "registrant" will send requests to registry in a loop to register itself.
 
 Source code and other details for the project are available at GitHub:
