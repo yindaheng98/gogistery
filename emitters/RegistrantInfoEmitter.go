@@ -10,9 +10,9 @@ type RegistrantInfoEmitter struct {
 	Emitter.Emitter
 }
 
-//NewRegistrantInfoEmitter returns the pointer to a async RegistrantInfoEmitter
+//NewRegistrantInfoEmitter returns the pointer to a sync RegistrantInfoEmitter
 func NewRegistrantInfoEmitter() *RegistrantInfoEmitter {
-	return &RegistrantInfoEmitter{Emitter.NewAsyncEmitter()}
+	return &RegistrantInfoEmitter{Emitter.NewSyncEmitter()}
 }
 
 //Implementation of Emitter.AddHandler

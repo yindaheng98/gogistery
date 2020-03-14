@@ -11,13 +11,8 @@ type TobeSendRequestErrorEmitter struct {
 }
 
 //NewSyncTobeSendRequestErrorEmitter returns the pointer to a sync TobeSendRequestErrorEmitter
-func NewSyncTobeSendRequestErrorEmitter() *TobeSendRequestErrorEmitter {
+func NewTobeSendRequestErrorEmitter() *TobeSendRequestErrorEmitter {
 	return &TobeSendRequestErrorEmitter{Emitter.NewSyncErrorInfoEmitter()}
-}
-
-//NewAsyncTobeSendRequestErrorEmitter returns the pointer to a async TobeSendRequestErrorEmitter
-func NewAsyncTobeSendRequestErrorEmitter() *TobeSendRequestErrorEmitter {
-	return &TobeSendRequestErrorEmitter{Emitter.NewAsyncErrorInfoEmitter()}
 }
 
 //Implementation of Emitter.AddHandler
