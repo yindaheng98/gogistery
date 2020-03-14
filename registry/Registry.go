@@ -57,8 +57,9 @@ func (r *Registry) Run(ctx context.Context) {
 func (r *Registry) GetConnections() []protocol.RegistrantInfo {
 	r.timeoutMapMu.RLock()
 	defer r.timeoutMapMu.RUnlock()
-	infos := make([]protocol.RegistrantInfo, r.timeoutMap.Count())
-	for i, registrant := range r.timeoutMap.GetAll() {
+	timeoutMapEls := r.timeoutMap.GetAll()
+	infos := make([]protocol.RegistrantInfo, len(timeoutMapEls))
+	for i, registrant := range timeoutMapEls {
 		infos[i] = registrant.(registrantTimeoutType).RegistrantInfo
 	}
 	return infos
