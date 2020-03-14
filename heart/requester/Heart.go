@@ -7,12 +7,27 @@ import (
 	"time"
 )
 
+//Heart is the request controller.
+//It can send request ("beat") to registry in a loop,
+//until the registry reject it or occured some error.
 type Heart struct {
 	beater    HeartBeater
 	requester *requester
-	Handlers  *handlers
+
+	//Handlers consists of a series of functions.
+	//The function will be called when:
+	//
+	//* `NewConnectionHandler`: the 2nd message to a registry sent successfully
+	//
+	//* `UpdateConnectionHandler`: the 3rd and later message to a registry sent successfully
+	//
+	//* `DisconnectionHandler`: `Heart.RunBeating(...)` exited
+	//
+	//* `RetryHandler`: message sent failed and before retransmission
+	Handlers *handlers
 }
 
+//NewHeart returns the pointer to a Heart
 func NewHeart(beater HeartBeater, RequestProto protocol.RequestProtocol) *Heart {
 	heart := &Heart{beater,
 		newRequester(RequestProto),
@@ -23,7 +38,19 @@ func NewHeart(beater HeartBeater, RequestProto protocol.RequestProtocol) *Heart 
 	return heart
 }
 
-//开始心跳，直到最后由协议主动停止心跳或出错才返回
+//The method RunBeating will send "beat" to registry in a loop,
+//until the registry reject it or occured some error.
+//It will do following things:
+//
+//1. Call the method `protocol.RequestProtocol.Request` you have implemented to send `initRequest` to registry, and get a response
+//
+//2. Call the method `HeartBeater.Beat` to get next request
+//
+//3. Call the method `protocol.RequestProtocol.Request` you have implemented to send the request to registry, and get the other response
+//
+//4. Loop step 2 and step 3 until some error occured or function `beat` was not called in `HeartBeater.Beat`
+//
+//When called, this function will block your goroutine until returned.
 func (h *Heart) RunBeating(ctx context.Context,
 	initRequest protocol.TobeSendRequest, initTimeout time.Duration, initRetryN uint64) error {
 	request, Timeout, RetryN := initRequest, initTimeout, initRetryN
