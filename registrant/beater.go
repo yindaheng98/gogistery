@@ -8,11 +8,11 @@ import (
 
 type beater struct {
 	registrant       *Registrant //此协议服务于哪个heart
-	retryNController RetryNController
+	retryNController WaitTimeoutRetryNController
 	i                uint64 //此协议编号
 }
 
-func newBeater(registrant *Registrant, retryNController RetryNController, i uint64) *beater {
+func newBeater(registrant *Registrant, retryNController WaitTimeoutRetryNController, i uint64) *beater {
 	return &beater{registrant, retryNController, i}
 }
 func (p *beater) Beat(ctx context.Context, response protocol.Response, lastTimeout time.Duration, lastRetryN uint64, beat func(protocol.TobeSendRequest, time.Duration, uint64)) {

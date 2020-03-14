@@ -10,21 +10,43 @@ import (
 	"time"
 )
 
+//Registrant stands for the "registrant" in gogistry.
+//A "registrant" will send requests to registry in a loop to register itself.
 type Registrant struct {
-	Info          protocol.RegistrantInfo //注册器的信息
+
+	//Info contains the information of this Registrant.
+	Info          protocol.RegistrantInfo
 	hearts        []*requester.Heart
 	connections   []protocol.RegistryInfo
 	connectionsMu *sync.RWMutex
 
+	//Every registrant has a watch dog.
+	//The watch dog will scan the connection list every once in a while,
+	//and if the connection list is empty for too long,
+	//watch dog will forcelly exit the Registrant.Run.
+	//The scan time of the watch dog can be change through WatchdogTimeDelta.
 	WatchdogTimeDelta time.Duration
 
-	candidates         RegistryCandidateList        //候选服务器选择协议
+	candidates RegistryCandidateList //候选服务器选择协议
+
+	//A registrant will maintain a candidate registry list.
+	//
+	//Information of candidate registries exist in every response from registry.
+	//
+	//If registry did not send back a response during a specific period of time after send a request,
+	//the registrant will no longer send requests to the registry,
+	//but will begin to send requests to one of the registries in candidate registry list.
+	//
+	//CandidateBlacklist contains those registry that the registrant should not connect to.
 	CandidateBlacklist chan []protocol.RegistryInfo //不可以进行连接的候选服务器
-	Events             *events
+
+	//Events contains 5 emitters to record running events.
+	Events *events
 }
 
+//New returns the pointer to a Registrant.
 func New(Info protocol.RegistrantInfo, regitryN uint64, CandidateList RegistryCandidateList,
-	retryNController RetryNController, RequestProto protocol.RequestProtocol) *Registrant {
+	retryNController WaitTimeoutRetryNController, RequestProto protocol.RequestProtocol) *Registrant {
 	registrant := &Registrant{
 		Info:          Info,
 		hearts:        make([]*requester.Heart, regitryN),
@@ -57,7 +79,6 @@ func New(Info protocol.RegistrantInfo, regitryN uint64, CandidateList RegistryCa
 	return registrant
 }
 
-//For the struct heart
 func (r *Registrant) register(ctx context.Context, response protocol.Response, i uint64) bool {
 	okChan := make(chan bool, 1)
 	go func() {
@@ -80,6 +101,9 @@ func (r *Registrant) register(ctx context.Context, response protocol.Response, i
 	}
 }
 
+//Run will start the request sending and wake up the watch dog.
+//The information of registries that the registrant should connect was given by candidate registry list,
+//so make sure when registry is needed, the candidate registry list is not empty.
 func (r *Registrant) Run(ctx context.Context) {
 	connectionsChan := make(chan []protocol.RegistryInfo, 1)
 	connections := make([]protocol.RegistryInfo, len(r.connections))
@@ -178,6 +202,9 @@ func (r *Registrant) watchDog(ctx context.Context, beatingN *int64, cancel func(
 	}
 }
 
+//Registrant maintains a connection list,
+//which can be accessed through GetConnections.
+//This connection list contains the information (`protocol.RegistryInfo`) of the registries connecting by the `Registrant`.
 func (r *Registrant) GetConnections() []protocol.RegistryInfo {
 	connections := make([]protocol.RegistryInfo, 0)
 	r.connectionsMu.RLock()
@@ -190,6 +217,7 @@ func (r *Registrant) GetConnections() []protocol.RegistryInfo {
 	return connections
 }
 
+//AddCandidates can add the information of a registries to candidate registry list.
 func (r *Registrant) AddCandidates(ctx context.Context, candidates []protocol.RegistryInfo) {
 	r.candidates.StoreCandidates(ctx, candidates)
 }

@@ -6,10 +6,13 @@ import (
 	"time"
 )
 
+//RegistryCandidateList is the abstract of the candidate registry list.
+//This interface is used in Registrant.
 type RegistryCandidateList interface {
-	//存入一组候选注册中心
+	//Add the information of a registries to candidate registry list.
 	StoreCandidates(ctx context.Context, candidates []protocol.RegistryInfo)
 
-	//选出一个用于初始化的注册中心信息，并且不能是except中列出的这几个
+	//Get the information of a candidate registry,
+	//except those in "except".
 	GetCandidate(ctx context.Context, except []protocol.RegistryInfo) (protocol.RegistryInfo, time.Duration, uint64)
 }
