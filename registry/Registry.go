@@ -17,7 +17,7 @@ type Registry struct {
 	Info  protocol.RegistryInfo //存储自身信息
 	heart *responser.Heart      //响应器/消息源
 
-	maxRegistrants    int                    //最大连接数
+	maxRegistrants    uint64                 //最大连接数
 	timeoutMap        *TimeoutMap.TimeoutMap //超时计时表
 	timeoutMapMu      *sync.RWMutex
 	timeoutController TimeoutController //如何选择timeout
@@ -27,12 +27,12 @@ type Registry struct {
 }
 
 //New returns the pointer to a Registry.
-func New(Info protocol.RegistryInfo, maxRegistrants uint, timeoutController TimeoutController, ResponseProto protocol.ResponseProtocol) *Registry {
+func New(Info protocol.RegistryInfo, maxRegistrants uint64, timeoutController TimeoutController, ResponseProto protocol.ResponseProtocol) *Registry {
 	registry := &Registry{
 		Info:  Info,
 		heart: nil,
 
-		maxRegistrants:    int(maxRegistrants),
+		maxRegistrants:    maxRegistrants,
 		timeoutMap:        TimeoutMap.New(),
 		timeoutMapMu:      new(sync.RWMutex),
 		timeoutController: timeoutController,
@@ -78,7 +78,7 @@ func (r *Registry) register(request protocol.Request) (time.Duration, bool) {
 	var exists bool
 	if _, exists = r.timeoutMap.GetElement(registrantID); exists { //如果连接已存在
 		timeout = r.timeoutController.TimeoutForUpdate(request) //则获取更新的timeout
-	} else if r.timeoutMap.Count() < r.maxRegistrants { //如果连接不存在但可以接受新连接
+	} else if uint64(r.timeoutMap.Count()) < r.maxRegistrants { //如果连接不存在但可以接受新连接
 		timeout = r.timeoutController.TimeoutForNew(request) //则获取新建的timeout
 	} else { //如果连接不存在且又不能接受新连接
 		return 3600 * 24 * 1e9, false //拒绝，让对方明天再来

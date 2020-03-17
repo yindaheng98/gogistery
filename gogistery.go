@@ -9,7 +9,7 @@ import (
 //NewRegistry returns the pointer of an "registry".
 func NewRegistry(
 	Info protocol.RegistryInfo,
-	maxRegistrants uint,
+	maxRegistrants uint64,
 	timeoutController registry.TimeoutController,
 	ResponseProto protocol.ResponseProtocol) *registry.Registry {
 	return registry.New(Info, maxRegistrants, timeoutController, ResponseProto)
