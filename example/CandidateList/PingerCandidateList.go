@@ -2,7 +2,6 @@ package CandidateList
 
 import (
 	"context"
-	"github.com/yindaheng98/go-utility/SortedSet"
 	"github.com/yindaheng98/gogistry/protocol"
 	"time"
 )
@@ -45,15 +44,9 @@ type PingerCandidateList struct {
 }
 
 //NewPingerCandidateList returns the pointer to a PingerCandidateList.
-func NewPingerCandidateList(size uint64, pinger PINGer, maxPingTimeout time.Duration,
-	initRegistry protocol.RegistryInfo, initTimeout time.Duration, initRetryN uint64) *PingerCandidateList {
+func NewPingerCandidateList(size uint64, initRegistry protocol.RegistryInfo, pinger PINGer, maxPingTimeout time.Duration) *PingerCandidateList {
 	list := &PingerCandidateList{
-		SimpleCandidateList: SimpleCandidateList{
-			initTimeout: initTimeout,
-			initRetryN:  initRetryN,
-			set:         make(chan *SortedSet.SortedSet, 1),
-			waitGroup:   make(chan bool),
-		},
+		SimpleCandidateList: *NewSimpleCandidateList(size, initRegistry),
 		timer: pingTimer{
 			pinger:         pinger,
 			maxPingTimeout: maxPingTimeout,
@@ -62,10 +55,6 @@ func NewPingerCandidateList(size uint64, pinger PINGer, maxPingTimeout time.Dura
 		size:        size,
 		pingingList: make(chan map[string]element, 1),
 	}
-
-	list.set <- SortedSet.New(size)
-	list.pingingList <- make(map[string]element, size)
-	list.ping(context.Background(), element{initRegistry})
 	return list
 }
 

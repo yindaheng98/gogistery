@@ -10,20 +10,20 @@ import (
 //SimpleCandidateList is a simple implementation of RegistryCandidateList.
 //This implementation sort registries by a weight.
 type SimpleCandidateList struct {
-	initTimeout time.Duration
-	initRetryN  uint64
-	set         chan *SortedSet.SortedSet
-	waitGroup   chan bool
+	DefaultTimeout time.Duration
+	DefaultRetryN  uint64
+	set            chan *SortedSet.SortedSet
+	waitGroup      chan bool
 }
 
 //NewSimpleCandidateList returns the pointer to a SimpleCandidateList.
 //At the beginning, the SimpleCandidateList will contain 1 candidate registry.
-func NewSimpleCandidateList(size uint64, initRegistry protocol.RegistryInfo, initTimeout time.Duration, initRetryN uint64) *SimpleCandidateList {
+func NewSimpleCandidateList(size uint64, initRegistry protocol.RegistryInfo) *SimpleCandidateList {
 	list := &SimpleCandidateList{
-		initTimeout: initTimeout,
-		initRetryN:  initRetryN,
-		set:         make(chan *SortedSet.SortedSet, 1),
-		waitGroup:   make(chan bool),
+		DefaultTimeout: 1e9,
+		DefaultRetryN:  10,
+		set:            make(chan *SortedSet.SortedSet, 1),
+		waitGroup:      make(chan bool),
 	}
 	set := SortedSet.New(size)
 	set.Update(element{initRegistry}, 0)
@@ -69,7 +69,7 @@ func (list *SimpleCandidateList) GetCandidate(ctx context.Context, excepts []pro
 			el := els[0].(element) //有就作为返回结果
 			set.Remove(el)         //然后删除返回结果
 			list.set <- set        //并将集合放回队列
-			return el.RegistryInfo, list.initTimeout, list.initRetryN
+			return el.RegistryInfo, list.DefaultTimeout, list.DefaultRetryN
 		}
 		list.set <- set  //并将集合放回队列
 		<-list.waitGroup //等待更新

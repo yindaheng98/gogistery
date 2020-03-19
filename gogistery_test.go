@@ -92,19 +92,19 @@ func RegistrantTest(t *testing.T, ctx context.Context, i int, wg *sync.WaitGroup
 	}
 	r := NewRegistrant(info, 5,
 		//CandidateList.NewSimpleCandidateList(SERVERN, LastRegistryInfo, 2e9, 10),
-		CandidateList.NewPingerCandidateList(SERVERN, NewTestPINGer(30, 1e9), 1e9, LastRegistryInfo, 2e9, 10),
+		CandidateList.NewPingerCandidateList(SERVERN, LastRegistryInfo, NewTestPINGer(30, 1e9), 1e9),
 		RetryNController.NewLinearRetryNController(), proto)
 	r.Events.NewConnection.AddHandler(func(i protocol.RegistryInfo) {
-		t.Log(fmt.Sprintf("RegistrantTest:%s--NewConnection--%s", info.GetRegistrantID(), i.GetRegistryID()))
+		fmt.Printf("RegistrantTest:%s--NewConnection--%s\n", info.GetRegistrantID(), i.GetRegistryID())
 	})
 	r.Events.NewConnection.Enable()
 	r.Events.Disconnection.AddHandler(func(i protocol.RegistryInfo, err error) {
-		t.Log(fmt.Sprintf("RegistrantTest:%s--Disconnection--%s. error:%s",
-			info.GetRegistrantID(), i.GetRegistryID(), err))
+		fmt.Printf("RegistrantTest:%s--Disconnection--%s. error:%s\n",
+			info.GetRegistrantID(), i.GetRegistryID(), err)
 	})
 	r.Events.Disconnection.Enable()
 	r.Events.Error.AddHandler(func(err error) {
-		t.Log(fmt.Sprintf("RegistrantTest:%s--Error--%s", info.GetRegistrantID(), err))
+		fmt.Printf("RegistrantTest:%s--Error--%s\n", info.GetRegistrantID(), err)
 	})
 	r.Events.Error.Enable()
 	go func() {
@@ -131,6 +131,7 @@ func TestRegistryRegistrant(t *testing.T) {
 	time.Sleep(20e9)
 	cancelRegistry()
 	cancelRegistrant()
+	fmt.Println("Canceled.")
 	wgRegistry.Wait()
 	wgRegistrant.Wait()
 }
