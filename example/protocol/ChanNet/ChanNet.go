@@ -74,13 +74,24 @@ func (n *ChanNet) Response(ctx context.Context, addr string) (protocol.Request, 
 	if err != nil {
 		return request, err, responseChan
 	}
-	s += fmt.Sprintf("A request %s was arrived at server in address '%s'", request.String(), addr)
-	defer func() { fmt.Print(s + "\n") }()
+	s += fmt.Sprintf("A request from %s was arrived at server in address '%s'. ", request.RegistrantInfo.GetRegistrantID(), addr)
 	failN := rand.New(n.src).Intn(100)
 	if failN <= n.FailRate {
-		s += fmt.Sprintf("This transmition will fail. ")
+		defer func() { fmt.Print(s + "\n") }()
+		s += fmt.Sprintf("This transmition failed. ")
 		return protocol.Request{}, errors.New(fmt.Sprintf("recv failed (failRate:%d,failN:%d)", n.FailRate, failN)), nil
 	}
-	s += fmt.Sprintf("This transmition will success. ")
-	return request, nil, responseChan
+	s += fmt.Sprintf("This transmition succeeded. ")
+	responseTranChan := make(chan protocol.Response)
+	go func() {
+		defer func() { fmt.Print(s + "\n") }()
+		select {
+		case <-ctx.Done():
+			s += "But canceled by context. "
+		case response := <-responseTranChan:
+			s += fmt.Sprintf("And the response is %s. ", response.String())
+			responseChan <- response
+		}
+	}()
+	return request, nil, responseTranChan
 }
