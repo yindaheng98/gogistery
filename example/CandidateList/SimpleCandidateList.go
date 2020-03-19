@@ -75,3 +75,14 @@ func (list *SimpleCandidateList) GetCandidate(ctx context.Context, excepts []pro
 		<-list.waitGroup //等待更新
 	}
 }
+
+func (list *SimpleCandidateList) DeleteCandidate(ctx context.Context, info protocol.RegistryInfo) {
+	var set *SortedSet.SortedSet
+	select {
+	case <-ctx.Done(): //若要结束
+		return //则直接退出
+	case set = <-list.set: //取出集合
+		defer func() { list.set <- set }() //结束时放回
+	}
+	set.Remove(element{info}) //删除元素
+}

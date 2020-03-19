@@ -94,7 +94,16 @@ func (r *Registrant) register(ctx context.Context, response protocol.Response, i
 	defer r.connectionsMu.Unlock()
 	if response.IsReject() { //如果拒绝连接
 		r.connections[i] = nil //就删除
-		return false           //然后断开连接
+		okChan := make(chan bool, 1)
+		go func() {
+			r.candidates.DeleteCandidate(ctx, response.RegistryInfo) //并删除候选
+			okChan <- true
+		}()
+		select {
+		case <-okChan:
+		case <-ctx.Done():
+		}
+		return false //然后断开连接
 	} else {
 		r.connections[i] = response.RegistryInfo //否则修改记录
 		return true

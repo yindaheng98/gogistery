@@ -15,4 +15,7 @@ type RegistryCandidateList interface {
 	//Get the information of a candidate registry, except those in "except".
 	//If there is no candidate meet the conditions, block until a eligible candidate added.
 	GetCandidate(ctx context.Context, except []protocol.RegistryInfo) (protocol.RegistryInfo, time.Duration, uint64)
+
+	//Delete the information of a candidate registry.
+	DeleteCandidate(ctx context.Context, info protocol.RegistryInfo)
 }
