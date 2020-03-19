@@ -76,6 +76,7 @@ func (list *SimpleCandidateList) GetCandidate(ctx context.Context, excepts []pro
 	}
 }
 
+//Delete a candidate from CandidateList. Implemention of CandidateList.DeleteCandidate.
 func (list *SimpleCandidateList) DeleteCandidate(ctx context.Context, info protocol.RegistryInfo) {
 	var set *SortedSet.SortedSet
 	select {
