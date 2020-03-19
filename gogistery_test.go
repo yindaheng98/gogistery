@@ -33,7 +33,7 @@ func RegistryTest(t *testing.T, ctx context.Context, wg *sync.WaitGroup) {
 	RegistryInfos[proto.GetAddr()] = info
 	LastRegistryInfo = info
 	r := NewRegistry(info, 5,
-		TimeoutController.NewLogTimeoutController(1e9, 3e9, 2),
+		TimeoutController.DefaultLogTimeoutController(),
 		proto)
 	r.Events.NewConnection.AddHandler(func(i protocol.RegistrantInfo) {
 		t.Log(fmt.Sprintf("RegistryTest(connections: %d) %s--NewConnection--%s", len(r.GetConnections()), info.GetRegistryID(), i.GetRegistrantID()))
@@ -93,7 +93,7 @@ func RegistrantTest(t *testing.T, ctx context.Context, i int, wg *sync.WaitGroup
 	r := NewRegistrant(info, 5,
 		//CandidateList.NewSimpleCandidateList(SERVERN, LastRegistryInfo, 2e9, 10),
 		CandidateList.NewPingerCandidateList(SERVERN, LastRegistryInfo, NewTestPINGer(30, 1e9), 1e9),
-		RetryNController.NewLinearRetryNController(), proto)
+		RetryNController.DefaultLinearRetryNController(), proto)
 	r.Events.NewConnection.AddHandler(func(i protocol.RegistryInfo) {
 		fmt.Printf("RegistrantTest:%s--NewConnection--%s\n", info.GetRegistrantID(), i.GetRegistryID())
 	})
