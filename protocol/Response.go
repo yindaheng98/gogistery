@@ -48,6 +48,6 @@ func (r Response) GetTimeout() time.Duration {
 	return r.Timeout
 }
 func (r Response) String() string {
-	return fmt.Sprintf("Registry.Response{RegistryInfo:%s,Timeout:%d,Reject:%t}",
-		r.RegistryInfo.String(), r.Timeout, r.Reject)
+	return fmt.Sprintf(`{"type":"github.com/yindaheng98/gogistry/protocol.Response",
+	"RegistryInfo":%s,"Timeout":"%d","Reject":"%t"}`, r.RegistryInfo.String(), r.Timeout, r.Reject)
 }

@@ -37,5 +37,6 @@ func (r Request) IsDisconnect() bool {
 }
 
 func (r Request) String() string {
-	return fmt.Sprintf("Request{RegistrantInfo:%s,Disconnect:%t}", r.RegistrantInfo.String(), r.Disconnect)
+	return fmt.Sprintf(`{"type":"github.com/yindaheng98/gogistry/protocol.Request",
+	"RegistrantInfo":%s,"Disconnect":"%t"}`, r.RegistrantInfo.String(), r.Disconnect)
 }

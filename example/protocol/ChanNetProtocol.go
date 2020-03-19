@@ -6,7 +6,7 @@ import (
 	"github.com/yindaheng98/gogistry/protocol"
 )
 
-var ChanNet = ChanNet2.New(1e9, 30, "%02d.service.chanNet", 100)
+var ChanNet = ChanNet2.New(1e9, 10, "%02d.service.chanNet", 100)
 
 type ChanNetRequestProtocol struct {
 }
