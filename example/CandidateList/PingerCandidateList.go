@@ -55,6 +55,7 @@ func NewPingerCandidateList(size uint64, initRegistry protocol.RegistryInfo, pin
 		size:        size,
 		pingingList: make(chan map[string]element, 1),
 	}
+	list.pingingList <- make(map[string]element, size)
 	return list
 }
 
