@@ -18,7 +18,7 @@ type LinearRetryNController struct {
 //DefaultLinearRetryNController returns the pointer to a LinearRetryNController with default member value.
 func DefaultLinearRetryNController() *LinearRetryNController {
 	return &LinearRetryNController{
-		K_RetryN: 2, B_RetryN: 1,
+		K_RetryN: 2, B_RetryN: 3,
 		K_SendTime: 10, B_SendTime: 1e9,
 	}
 }
