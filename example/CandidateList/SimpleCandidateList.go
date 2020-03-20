@@ -16,9 +16,15 @@ type SimpleCandidateList struct {
 	waitGroup      chan bool
 }
 
-//NewSimpleCandidateList returns the pointer to a SimpleCandidateList.
-//At the beginning, the SimpleCandidateList will contain 1 candidate registry.
+//NewSimpleCandidateList returns the pointer to a SimpleCandidateList, with initRegistry in it.
 func NewSimpleCandidateList(size uint64, initRegistry protocol.RegistryInfo) *SimpleCandidateList {
+	list := NewEmptySimpleCandidateList(size)
+	list.StoreCandidates(context.Background(), []protocol.RegistryInfo{initRegistry})
+	return list
+}
+
+//NewEmptySimpleCandidateList returns the pointer to a empty SimpleCandidateList.
+func NewEmptySimpleCandidateList(size uint64) *SimpleCandidateList {
 	list := &SimpleCandidateList{
 		DefaultTimeout: 1e9,
 		DefaultRetryN:  10,
@@ -26,7 +32,6 @@ func NewSimpleCandidateList(size uint64, initRegistry protocol.RegistryInfo) *Si
 		waitGroup:      make(chan bool),
 	}
 	set := SortedSet.New(size)
-	set.Update(element{initRegistry}, 0)
 	list.set <- set
 	return list
 }

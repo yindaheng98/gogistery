@@ -43,10 +43,26 @@ type PingerCandidateList struct {
 	pingingList chan map[string]element //正在被ping的注册中心列表
 }
 
-//NewPingerCandidateList returns the pointer to a PingerCandidateList.
-func NewPingerCandidateList(size uint64, initRegistry protocol.RegistryInfo, pinger PINGer, maxPingTimeout time.Duration) *PingerCandidateList {
+//NewPingerCandidateList returns the pointer to a PingerCandidateList, with initRegistry in it.
+func NewPingerCandidateList(size uint64, pinger PINGer, maxPingTimeout time.Duration, initRegistry protocol.RegistryInfo) *PingerCandidateList {
 	list := &PingerCandidateList{
 		SimpleCandidateList: *NewSimpleCandidateList(size, initRegistry),
+		timer: pingTimer{
+			pinger:         pinger,
+			maxPingTimeout: maxPingTimeout,
+		},
+
+		size:        size,
+		pingingList: make(chan map[string]element, 1),
+	}
+	list.pingingList <- make(map[string]element, size)
+	return list
+}
+
+//NewEmptyPingerCandidateList returns the pointer to a empty PingerCandidateList.
+func NewEmptyPingerCandidateList(size uint64, pinger PINGer, maxPingTimeout time.Duration) *PingerCandidateList {
+	list := &PingerCandidateList{
+		SimpleCandidateList: *NewEmptySimpleCandidateList(size),
 		timer: pingTimer{
 			pinger:         pinger,
 			maxPingTimeout: maxPingTimeout,

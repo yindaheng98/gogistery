@@ -91,8 +91,8 @@ func RegistrantTest(t *testing.T, ctx context.Context, i int, wg *sync.WaitGroup
 		Option: ExampleProtocol.ResponseSendOption{},
 	}
 	r := NewRegistrant(info, 5,
-		//CandidateList.NewSimpleCandidateList(SERVERN, LastRegistryInfo, 2e9, 10),
-		CandidateList.NewPingerCandidateList(SERVERN, LastRegistryInfo, NewTestPINGer(30, 1e9), 1e9),
+		//CandidateList.NewSimpleCandidateList(SERVERN, LastRegistryInfo),
+		CandidateList.NewPingerCandidateList(SERVERN, NewTestPINGer(30, 1e9), 1e9, LastRegistryInfo),
 		RetryNController.DefaultLinearRetryNController(), proto)
 	r.Events.NewConnection.AddHandler(func(i protocol.RegistryInfo) {
 		fmt.Printf("RegistrantTest:%s--NewConnection--%s\n", info.GetRegistrantID(), i.GetRegistryID())
