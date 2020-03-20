@@ -18,9 +18,9 @@ func NewRegistry(
 //NewRegistry returns the pointer of an "registrant".
 func NewRegistrant(
 	Info protocol.RegistrantInfo,
-	regitryN uint64,
+	registryN uint64,
 	CandidateList registrant.RegistryCandidateList,
 	retryNController registrant.WaitTimeoutRetryNController,
 	RequestProto protocol.RequestProtocol) *registrant.Registrant {
-	return registrant.New(Info, regitryN, CandidateList, retryNController, RequestProto)
+	return registrant.New(Info, registryN, CandidateList, retryNController, RequestProto)
 }

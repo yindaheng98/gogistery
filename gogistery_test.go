@@ -32,7 +32,7 @@ func RegistryTest(t *testing.T, ctx context.Context, wg *sync.WaitGroup) {
 	}
 	RegistryInfos[proto.GetAddr()] = info
 	LastRegistryInfo = info
-	r := NewRegistry(info, 5,
+	r := NewRegistry(info, 8,
 		TimeoutController.DefaultLogTimeoutController(),
 		proto)
 	r.Events.NewConnection.AddHandler(func(i protocol.RegistrantInfo) {
@@ -64,7 +64,7 @@ func NewTestPINGer(failRate uint8, maxT time.Duration) *TestPINGer {
 }
 
 func (p *TestPINGer) PING(ctx context.Context, info protocol.RegistryInfo) bool {
-	s := fmt.Sprintf("TestPINGer.PING(%s)-->", info.String())
+	s := fmt.Sprintf("TestPINGer.PING(%s)-->", info.GetRegistryID())
 	r := rand.New(p.src).Int31n(100)
 	timeout := time.Duration(rand.New(p.src).Uint64()) % p.maxT
 	s += fmt.Sprintf("This PING will return in %d. ", timeout)
@@ -90,7 +90,7 @@ func RegistrantTest(t *testing.T, ctx context.Context, i int, wg *sync.WaitGroup
 		//Type:   "XXX", //模拟类型不一样时的连接拒绝过程
 		Option: ExampleProtocol.ResponseSendOption{},
 	}
-	r := NewRegistrant(info, 5,
+	r := NewRegistrant(info, 4,
 		//CandidateList.NewSimpleCandidateList(SERVERN, LastRegistryInfo),
 		CandidateList.NewPingerCandidateList(SERVERN, NewTestPINGer(30, 1e9), 1e9, LastRegistryInfo),
 		RetryNController.DefaultLinearRetryNController(), proto)
@@ -128,10 +128,9 @@ func TestRegistryRegistrant(t *testing.T) {
 	for i := 0; i < CLIENTN; i++ {
 		RegistrantTest(t, ctxRegistrant, i, wgRegistrant)
 	}
-	time.Sleep(20e9)
+	wgRegistry.Wait()
+	wgRegistrant.Wait()
 	cancelRegistry()
 	cancelRegistrant()
 	fmt.Println("Canceled.")
-	wgRegistry.Wait()
-	wgRegistrant.Wait()
 }
